@@ -13,13 +13,24 @@ Written for learners from non-technical and technical backgrounds. No programmin
 ## What is included
 
 - **Six lifecycle stages:** requirements, design, development, testing, deployment and maintenance.
-- **184 worked documents (46 per case):** every document explains what, why, who, when, where, which related documents and how to prepare it.
-- **160 newly authored concept notes**, a plain-language glossary and **48 original scenario self-checks** with explanations.
+- **184 illustrated worked documents (46 per case):** every document explains what, why, who, when, where, which related documents and how to prepare it. HLD and LLD include architecture, sequence, state and quantity views tailored to the selected case.
+- **160 visual concept guides:** each includes an original diagram, step-by-step explanation, four specific case examples, a common mistake and an answered self-check.
+- **47 deeper comparisons:** components, architecture patterns, design patterns, methodologies, testing methods and deployment methods. Each includes a worked visual, trade-offs and examples across the four cases.
+- A plain-language glossary and **48 original scenario self-checks** with explanations.
 - **72 planned test cases** across banking, shopping, rentals and repair, plus guided exercises.
 - **Four interactive demos:** a fictional bank, online shop, car-rental desk and community repair hub. Each exposes its important rules, review steps and failure paths.
 - Local search, responsive layout, light/dark modes, source references and cross-linked examples.
 
 The complete application is self-contained in `index.html`. It has no runtime packages, trackers, remote fonts, backend or required network calls. The public site provides in-page reading, without document download/export controls. Optional reference, sharing and GitHub links need internet access.
+
+## Read a visual example
+
+- [Banking HLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/doc/hld): actual browser responsibilities and proposed service boundaries.
+- [Banking LLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/doc/lld): transfer sequence, balance conservation and state transitions.
+- [Rental LLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/case/rentals/doc/lld): interval overlap, booking states and replay.
+- [Testing methods](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/concept/test-functions-and-quality-characteristics?detail=1): levels, techniques, evidence and trade-offs.
+
+All diagrams are original local SVGs with captions and text alternatives. Wide diagrams can be panned on small screens. No external diagram service is required.
 
 ## A practical learning path
 
@@ -67,7 +78,7 @@ The site includes references to NASA requirements guidance, ISTQB, the Scrum Gui
 - **Star this repository** if it is useful to you.
 - Share the live guide with learners and colleagues.
 - Open an issue with a clear example of a confusing explanation, incorrect rule or broken interaction.
-- Suggest improvements that preserve plain language and the coherent banking case.
+- Suggest improvements that preserve plain language and consistency across all four cases.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for useful issue and contribution guidance.
 
