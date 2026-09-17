@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">TechKnowen — path to understanding</title>
+  <desc id="desc">Two open concentric rings form a simple maze. Enter at the top, follow the space between the rings to the opening at the bottom, and reach the central dot.</desc>
+  <path d="M36 21.359 A40 40 0 1 0 76 21.359" stroke="#0B2339" stroke-width="8" stroke-linecap="butt"/>
+  <path d="M69 78.517 A26 26 0 1 0 43 78.517" stroke="#0EAFA6" stroke-width="8" stroke-linecap="butt"/>
+  <circle cx="56" cy="56" r="7" fill="#0B2339"/>
+</svg>

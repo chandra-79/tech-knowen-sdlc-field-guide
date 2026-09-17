@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 140" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">TechKnowen</title>
+  <desc id="desc">TechKnowen: technical knowledge. A navy and teal open-ring maze leads to a central goal. Open systems, open learning.</desc>
+  <g transform="translate(4 14)">
+    <path d="M36 21.359 A40 40 0 1 0 76 21.359" stroke="#0B2339" stroke-width="8" stroke-linecap="butt"/>
+    <path d="M69 78.517 A26 26 0 1 0 43 78.517" stroke="#0EAFA6" stroke-width="8" stroke-linecap="butt"/>
+    <circle cx="56" cy="56" r="7" fill="#0B2339"/>
+  </g>
+  <text x="136" y="75" font-family="Inter, Arial, sans-serif" font-size="47" font-weight="700" letter-spacing="-1.8"><tspan fill="#0B2339">Tech</tspan><tspan fill="#079F99">Know</tspan><tspan fill="#0B2339">en</tspan></text>
+  <text x="138" y="103" fill="#526371" font-family="Inter, Arial, sans-serif" font-size="17" letter-spacing="0.1">open systems, open learning</text>
+</svg>

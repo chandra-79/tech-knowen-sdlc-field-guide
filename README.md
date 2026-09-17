@@ -1,5 +1,7 @@
 # SDLC Field Guide · TechKnowen
 
+![TechKnowen](brand/techknowen-logo.svg)
+
 **Understand the software lifecycle through four complete, fictional business cases.**
 
 [Read the guide](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/) · [Try the banking demo](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/demo) · [Explore four cases](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/cases) · [Browse worked documents](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/documents) · [Suggest an improvement](https://github.com/chandra-79/tech-knowen-sdlc-field-guide/issues)
