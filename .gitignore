@@ -1,0 +1,10 @@
+.DS_Store
+.openai/
+.sites-runtime/
+dist/
+build-content.py
+bundle.py
+qa-*.js
+qa-*.json
+.playwright-cli/
+node_modules/
