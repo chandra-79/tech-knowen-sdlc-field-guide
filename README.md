@@ -2,24 +2,35 @@
 
 ![TechKnowen](brand/techknowen-logo.svg)
 
-**Understand the software lifecycle through four complete, fictional business cases.**
+**Understand the software lifecycle through online banking, then choose how deeply to explore.**
 
-[Read the guide](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/) · [Try the banking demo](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/demo) · [Explore four cases](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/cases) · [Browse worked documents](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/documents) · [Suggest an improvement](https://github.com/chandra-79/tech-knowen-sdlc-field-guide/issues)
+[Read the guide](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/) · [Try the banking demo](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/demo) · [Choose advanced cases](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/advanced/cases) · [Browse worked documents](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/documents) · [Suggest an improvement](https://github.com/chandra-79/tech-knowen-sdlc-field-guide/issues)
 
 [![GitHub stars](https://img.shields.io/github/stars/chandra-79/tech-knowen-sdlc-field-guide?style=social)](https://github.com/chandra-79/tech-knowen-sdlc-field-guide/stargazers)
 
 Written for learners from non-technical and technical backgrounds. No programming experience is needed to follow the main learning path.
 
+## Choose your learning depth
+
+| Level | Purpose | Examples and diagrams |
+|---|---|---|
+| **1 · Core revision** | Understand the central ideas in the familiar sequence: foundations, requirements, design, development, testing, deployment and maintenance. | Banking only. Simple pictures, plain descriptions, introductory document extracts and self-checks. |
+| **2 · More detail** | Explore those same concepts more deeply when ready. | Banking only. More detailed models, reasoning, limitations and complete worked records. |
+| **3 · Advanced and beyond** | Deliberately choose additional subjects and applications beyond the core learning scope. | Extension topics and the shopping, rental and community repair cases, with their own diagrams, documents and demos. |
+
+Each core topic has a direct **More detail** choice and a way back to the simple explanation. Search stays within the selected level. Legacy links to other cases present an explicit advanced-entry choice.
+
 ## What is included
 
-- **Six lifecycle stages:** requirements, design, development, testing, deployment and maintenance.
-- **184 illustrated worked documents (46 per case):** every document explains what, why, who, when, where, which related documents and how to prepare it. HLD and LLD include architecture, sequence, state and quantity views tailored to the selected case.
-- **160 visual concept guides:** each includes an original diagram, step-by-step explanation, four specific case examples, a common mistake and an answered self-check.
-- **47 deeper comparisons:** components, architecture patterns, design patterns, methodologies, testing methods and deployment methods. Each includes a worked visual, trade-offs and examples across the four cases.
-- A plain-language glossary and **48 original scenario self-checks** with explanations.
-- **72 planned test cases** across banking, shopping, rentals and repair, plus guided exercises.
-- **Four interactive demos:** a fictional bank, online shop, car-rental desk and community repair hub. Each exposes its important rules, review steps and failure paths.
-- Local search, responsive layout, light/dark modes, source references and cross-linked examples.
+- **114 core concept guides**, each with separate Core and More views.
+- **68 named subtopics** explaining patterns, architecture styles, diagram types, testing approaches, engineering principles and development tools through banking.
+- **46 additional topics** in Advanced and beyond.
+- **27 introductory banking documents** in Core and **32 complete banking records** in More. Each explains what, why, who, when, where, which related information and how.
+- **184 worked documents overall:** 46 per case, with specialist banking records and all three other case libraries in Advanced.
+- **47 optional comparisons and applications** in the advanced area.
+- **48 original scenario self-checks:** 31 available in Core, 37 in More (including the Core questions), and 11 separate advanced questions.
+- **Four interactive demos:** banking in the main learning path; shopping, rentals and repair in Advanced.
+- Local search, responsive diagrams, light/dark modes, source references and cross-linked examples.
 
 The complete application is self-contained in `index.html`. It has no runtime packages, trackers, remote fonts, backend or required network calls. The public site provides in-page reading, without document download/export controls. Optional reference, sharing and GitHub links need internet access.
 
@@ -27,19 +38,20 @@ The complete application is self-contained in `index.html`. It has no runtime pa
 
 - [Banking HLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/doc/hld): actual browser responsibilities and proposed service boundaries.
 - [Banking LLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/doc/lld): transfer sequence, balance conservation and state transitions.
-- [Rental LLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/case/rentals/doc/lld): interval overlap, booking states and replay.
-- [Testing methods](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/concept/test-functions-and-quality-characteristics?detail=1): levels, techniques, evidence and trade-offs.
+- [Rental LLD](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/advanced/case/rentals/doc/lld): interval overlap, booking states and replay.
+- [Testing methods](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/#/concept/test-functions-and-quality-characteristics?level=2): levels, techniques, evidence and trade-offs.
 
-All diagrams are original local SVGs with captions and text alternatives. Wide diagrams can be panned on small screens. No external diagram service is required.
+Diagrams use original local SVG or semantic HTML with captions and descriptive text. Simple Core pictures stack on small screens; wide detailed diagrams can be panned. No external diagram service is required.
 
 ## A practical learning path
 
 1. Read **Start here** and the **Banking case study**.
 2. Log into the demo using the public training values shown on its screen.
 3. Transfer SGD 200.00 from current to savings.
-4. Follow **FR-06** through the FRD, detailed design, traceability matrix and test cases.
+4. Open **More detail** to follow **FR-06** through the complete FRD, detailed design, traceability matrix and test cases.
 5. Compare normal behaviour with cancellation, insufficient funds and an ended session.
 6. Explain what the local prototype demonstrates and what a real service still needs.
+7. Choose **Advanced and beyond** only when you want additional topics or another business case.
 
 ## Document library
 
@@ -52,16 +64,16 @@ All diagrams are original local SVGs with captions and text alternatives. Wide d
 | Delivery and operation | Deployment/rollback, release notes, user guide, operations runbook, disaster recovery |
 | Maintenance | Change request, incident learning review, maintenance plan |
 
-## Four cases, one learning sequence
+## One core case, three optional advanced cases
 
 | Case | Main questions |
 |---|---|
-| Harbour Bank | How do account access, review, transfers and exact money rules fit together? |
-| Market Lane | When is stock held, consumed or restored, and how are repeat actions handled? |
-| Open Road | Which date intervals overlap, and how do cancellations and maintenance blocks affect availability? |
-| Second Spark | Which technician and part fit a job, and which transitions require approval? |
+| Harbour Bank · Core and More | How do account access, review, transfers and exact money rules fit together? |
+| Market Lane · Advanced | When is stock held, consumed or restored, and how are repeat actions handled? |
+| Open Road · Advanced | Which date intervals overlap, and how do cancellations and maintenance blocks affect availability? |
+| Second Spark · Advanced | Which technician and part fit a job, and which transitions require approval? |
 
-Each case follows requirements, design, development, testing, deployment and maintenance, with the same seven-question document pattern.
+The three advanced cases reuse the six-stage and seven-question document patterns to help learners compare domains after choosing to extend their learning.
 
 ## Simulation boundaries
 
