@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bank-report
+  namespace: tk-bank
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: report
+        image: busybox:1.37
+        command:
+        - sh
+        - -c
+        - 'echo "Fictional bank report: total demo units 3500"'
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: bank-report-schedule
+  namespace: tk-bank
+spec:
+  schedule: 0 6 * * *
+  timeZone: Etc/UTC
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: report
+            image: busybox:1.37
+            command:
+            - sh
+            - -c
+            - 'echo "Fictional bank report: total demo units 3500"'

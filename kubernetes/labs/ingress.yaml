@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bank-web
+  namespace: tk-bank
+spec:
+  ingressClassName: replace-with-installed-class
+  rules:
+  - host: bank.example.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bank-web
+            port:
+              number: 80

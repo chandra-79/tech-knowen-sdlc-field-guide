@@ -1,0 +1,7 @@
+apiVersion: learning.techknowen.example/v1
+kind: BankReport
+metadata:
+  name: september
+  namespace: tk-bank
+spec:
+  period: 2026-09

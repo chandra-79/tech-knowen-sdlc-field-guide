@@ -1,0 +1,7 @@
+resources:
+  - ../../base
+  - namespace.yaml
+namespace: tk-kustomize
+replicas:
+  - name: bank-overlay
+    count: 3

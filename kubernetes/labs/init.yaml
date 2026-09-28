@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bank-init
+  namespace: tk-bank
+spec:
+  containers:
+  - name: web
+    image: nginx:1.27-alpine
+    volumeMounts:
+    - name: shared
+      mountPath: /usr/share/nginx/html
+  initContainers:
+  - name: prepare
+    image: busybox:1.37
+    command:
+    - sh
+    - -c
+    - echo "Harbour Bank prepared page" > /work/index.html
+    volumeMounts:
+    - name: shared
+      mountPath: /work
+  volumes:
+  - name: shared
+    emptyDir: {}

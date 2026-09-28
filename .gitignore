@@ -8,3 +8,6 @@ qa-*.js
 qa-*.json
 .playwright-cli/
 node_modules/
+kubernetes/research/
+kubernetes/__pycache__/
+kubernetes/src/__pycache__/

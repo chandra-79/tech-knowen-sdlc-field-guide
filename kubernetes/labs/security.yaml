@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secure-worker
+  namespace: tk-bank
+spec:
+  containers:
+  - name: worker
+    image: busybox:1.37
+    command:
+    - sh
+    - -c
+    - id; echo safe > /work/result; cat /work/result; sleep 3600
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+    volumeMounts:
+    - name: work
+      mountPath: /work
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+  - name: work
+    emptyDir: {}
