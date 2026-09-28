@@ -1,9 +1,87 @@
 {
- "ckad": {"title":"CKAD independent rehearsal","minutes":120,"namespace":"tk-ckad-attempt","tasks":[
- {"title":"Build the workload","points":20,"task":"Create a two-replica information service with explicit image, labels, requests/limits and readiness. Use an original page marker and a ConfigMap. Choose an appropriate controller.","evidence":"Saved manifests; two Ready replicas; correct page from the workload.","solution":"Use a Deployment whose selector matches its template. Mount the page ConfigMap. Validate rollout and response separately."},
- {"title":"Deploy and recover","points":20,"task":"Render a Kustomize overlay or Helm package, change a version, introduce a bad image and restore the known-good revision.","evidence":"Rendered YAML; stalled-rollout evidence; successful recovery and response.","solution":"Inspect rendered names and labels. Read Events for pull failure. Restore the intended Pod template, then check rollout and HTTP. Explain what image rollback cannot undo."},
- {"title":"Observe and diagnose","points":15,"task":"Repair a wrong readiness path and collect current/previous logs where applicable. Explain the resulting traffic effect.","evidence":"Root cause, changed field, readiness and endpoint observations.","solution":"A failing readiness check can leave the process running while removing it from normal Service traffic. Correct the endpoint and repeat the request."},
- {"title":"Configure and restrict","points":25,"task":"Run a non-root compatible worker with a writable scratch volume. Mount a dummy Secret without logging it. Give a separate ServiceAccount Pod-read permissions but no Secret-read permission.","evidence":"Observed UID and allowed write; byte-count-only Secret check; auth can-i yes/no pair.","solution":"Use compatible paths, drop capabilities and disable privilege escalation. Define narrow Role and RoleBinding. Test actual effective permissions."},
- {"title":"Connect and explain policy","points":20,"task":"Expose the workload with a Service and repair a wrong selector. Write an Ingress for the lab host and a NetworkPolicy permitting a labelled frontend. Test routing/policy only where controllers and an enforcing CNI exist.","evidence":"Service request succeeds; backend addresses match; Ingress/controller evidence and allowed/denied policy tests, or explicit not-tested dependencies.","solution":"Service selectors, ports and ready endpoints must align. Ingress needs a controller. NetworkPolicy needs enforcement. Missing infrastructure means the corresponding practical outcome is not earned, even when YAML validates."}
- ],"rubric":"Award each task’s points only when its stated observable outcomes are demonstrated. Partial credit: split the listed outcomes evenly and document which were observed. 80/100 is this guide’s suggested readiness target, not an official passing score. Repeat all missed tasks independently. If policy or ingress infrastructure is absent, record the attempt as incomplete rather than silently reallocating those points."}
+  "ckad": {
+    "title": "CKAD independent rehearsal",
+    "minutes": 120,
+    "namespace": "tk-ckad-attempt",
+    "tasks": [
+      {
+        "title": "Build the workload",
+        "points": 20,
+        "task": "Create a two-replica information service with explicit image, labels, requests/limits and readiness. Use an original page marker and a ConfigMap. Choose an appropriate controller.",
+        "evidence": "Saved manifests; two Ready replicas; correct page from the workload.",
+        "solution": "Use a Deployment whose selector matches its template. Mount the page ConfigMap. Validate rollout and response separately."
+      },
+      {
+        "title": "Deploy and recover",
+        "points": 20,
+        "task": "Render a Kustomize overlay or Helm package, change a version, introduce a bad image and restore the known-good revision.",
+        "evidence": "Rendered YAML; stalled-rollout evidence; successful recovery and response.",
+        "solution": "Inspect rendered names and labels. Read Events for pull failure. Restore the intended Pod template, then check rollout and HTTP. Explain what image rollback cannot undo."
+      },
+      {
+        "title": "Observe and diagnose",
+        "points": 15,
+        "task": "Repair a wrong readiness path and collect current/previous logs where applicable. Explain the resulting traffic effect.",
+        "evidence": "Root cause, changed field, readiness and endpoint observations.",
+        "solution": "A failing readiness check can leave the process running while removing it from normal Service traffic. Correct the endpoint and repeat the request."
+      },
+      {
+        "title": "Configure and restrict",
+        "points": 25,
+        "task": "Run a non-root compatible worker with a writable scratch volume. Mount a dummy Secret without logging it. Give a separate ServiceAccount Pod-read permissions but no Secret-read permission.",
+        "evidence": "Observed UID and allowed write; byte-count-only Secret check; auth can-i yes/no pair.",
+        "solution": "Use compatible paths, drop capabilities and disable privilege escalation. Define narrow Role and RoleBinding. Test actual effective permissions."
+      },
+      {
+        "title": "Connect and explain policy",
+        "points": 20,
+        "task": "Expose the workload with a Service and repair a wrong selector. Write an Ingress for the lab host and a NetworkPolicy permitting a labelled frontend. Test routing/policy only where controllers and an enforcing CNI exist.",
+        "evidence": "Service request succeeds; backend addresses match; Ingress/controller evidence and allowed/denied policy tests, or explicit not-tested dependencies.",
+        "solution": "Service selectors, ports and ready endpoints must align. Ingress needs a controller. NetworkPolicy needs enforcement. Missing infrastructure means the corresponding practical outcome is not earned, even when YAML validates."
+      }
+    ],
+    "rubric": "Award each task\u2019s points only when its stated observable outcomes are demonstrated. Partial credit: split the listed outcomes evenly and document which were observed. 80/100 is this guide\u2019s suggested readiness target, not an official passing score. Repeat all missed tasks independently. If policy or ingress infrastructure is absent, record the attempt as incomplete rather than silently reallocating those points."
+  },
+  "cka": {
+    "title": "CKA operations and incident rehearsal",
+    "minutes": 120,
+    "tasks": [
+      {
+        "title": "Plan and verify the cluster",
+        "points": 25,
+        "task": "In the disposable VM lab, explain the kubeadm/runtime/CNI configuration, RBAC boundaries and control-plane failure model. Demonstrate a supported lifecycle or isolated restore exercise.",
+        "evidence": "Version inventory, access checks, sanitized runbook and observed recovery verification.",
+        "solution": "Match documentation to the actual version. Protect datastore and application backups separately. Verify API readiness and workload behaviour after recovery."
+      },
+      {
+        "title": "Schedule and maintain workloads",
+        "points": 15,
+        "task": "Apply deliberate placement rules, inspect an unschedulable workload and conduct a controlled worker drain with a PDB. Explain metrics prerequisites for autoscaling.",
+        "evidence": "Scheduler Events, placement table, allowedDisruptions and request observations.",
+        "solution": "Tolerations permit but do not attract. Required placement can leave Pods Pending. Restore healthy capacity before bypassing a budget."
+      },
+      {
+        "title": "Repair network paths",
+        "points": 20,
+        "task": "Diagnose a Service-selector fault, compare DNS and direct-backend tests, and verify an HTTPRoute on a Gateway-capable cluster. Demonstrate an enforced NetworkPolicy allow/deny pair.",
+        "evidence": "EndpointSlices, DNS outcomes, route conditions and both allowed/denied traffic.",
+        "solution": "Separate naming, selection, policy and forwarding. CRDs or accepted manifests alone do not prove a controller or policy implementation works."
+      },
+      {
+        "title": "Explain and recover storage",
+        "points": 10,
+        "task": "Inspect binding mode, topology, access mode and reclaim policy. Demonstrate data persistence after Pod replacement and explain a separate restore plan.",
+        "evidence": "PVC/PV/class details, new Pod UID, preserved marker and backup scope.",
+        "solution": "Persistence is not backup. Reclaim policy can destroy backing storage; inspect it before cleanup."
+      },
+      {
+        "title": "Diagnose controlled incidents",
+        "points": 30,
+        "task": "Resolve a stopped kubelet in the VM lab, a bad workload image and an unavailable application route. Collect evidence before each repair.",
+        "evidence": "Symptom, hypothesis, decisive observation, minimal repair and repeated acceptance test for each fault.",
+        "solution": "Use host tools when the node/API path is broken. Read image pull Events for registry failures; inspect endpoints and ports for application routing. A reboot alone does not explain cause."
+      }
+    ],
+    "rubric": "Original 120-minute training exercise, not official exam questions or scoring. Award points only for demonstrated outcomes; divide task points across its stated outcomes for partial credit. Suggested readiness target: 80/100 plus successful repetition of missed tasks. Infrastructure-dependent tasks remain incomplete when their required lab is unavailable."
+  }
 }

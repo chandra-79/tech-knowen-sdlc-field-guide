@@ -1,0 +1,18 @@
+# Teaching starting point, NOT a complete VM installer.
+# Confirm your version, host addresses, runtime and CNI first.
+# 10.244.0.0/16 and 10.96.0.0/12 must not overlap host/VPN ranges.
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+nodeRegistration:
+  criSocket: unix:///var/run/containerd/containerd.sock
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+kubernetesVersion: v1.35.8
+networking:
+  podSubnet: 10.244.0.0/16
+  serviceSubnet: 10.96.0.0/12
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
