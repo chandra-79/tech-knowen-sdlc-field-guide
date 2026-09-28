@@ -1,0 +1,116 @@
+[
+  {
+    "title": "ACE \u00b7 Set up a cloud solution environment",
+    "weight": "20%",
+    "lessons": [
+      "gcp-start",
+      "gcp-hierarchy",
+      "gcp-iam"
+    ]
+  },
+  {
+    "title": "ACE \u00b7 Plan and configure a cloud solution",
+    "weight": "17.5%",
+    "lessons": [
+      "gcp-network",
+      "gcp-compute",
+      "gcp-storage",
+      "gcp-data",
+      "gcp-cost"
+    ]
+  },
+  {
+    "title": "ACE \u00b7 Deploy and implement a cloud solution",
+    "weight": "25%",
+    "lessons": [
+      "gke-first",
+      "gke-network",
+      "gke-identity",
+      "gcp-events",
+      "gcp-delivery",
+      "gcp-iac"
+    ]
+  },
+  {
+    "title": "ACE \u00b7 Ensure successful operation",
+    "weight": "20%",
+    "lessons": [
+      "gke-lifecycle",
+      "gcp-observe",
+      "gcp-recovery",
+      "gcp-capstone"
+    ]
+  },
+  {
+    "title": "ACE \u00b7 Configure access and security",
+    "weight": "17.5%",
+    "lessons": [
+      "gcp-iam",
+      "gke-identity",
+      "gcp-security"
+    ]
+  },
+  {
+    "title": "PCA \u00b7 Design and plan architecture",
+    "weight": "25%",
+    "lessons": [
+      "gcp-architecture",
+      "gcp-compute",
+      "gcp-data",
+      "gcp-migration",
+      "gcp-ai"
+    ]
+  },
+  {
+    "title": "PCA \u00b7 Manage and provision infrastructure",
+    "weight": "17.5%",
+    "lessons": [
+      "gcp-network",
+      "gke-modes",
+      "gke-first",
+      "gcp-storage",
+      "gcp-ai"
+    ]
+  },
+  {
+    "title": "PCA \u00b7 Design for security and compliance",
+    "weight": "17.5%",
+    "lessons": [
+      "gcp-security",
+      "gcp-hierarchy",
+      "gcp-iam",
+      "gke-identity",
+      "gcp-delivery"
+    ]
+  },
+  {
+    "title": "PCA \u00b7 Analyse and optimise technical/business processes",
+    "weight": "15%",
+    "lessons": [
+      "gcp-cost",
+      "gcp-migration",
+      "gcp-architecture",
+      "gcp-delivery"
+    ]
+  },
+  {
+    "title": "PCA \u00b7 Manage implementations",
+    "weight": "12.5%",
+    "lessons": [
+      "gcp-iac",
+      "gcp-delivery",
+      "gcp-migration",
+      "gcp-events"
+    ]
+  },
+  {
+    "title": "PCA \u00b7 Ensure solution and operational excellence",
+    "weight": "12.5%",
+    "lessons": [
+      "gcp-observe",
+      "gcp-recovery",
+      "gke-lifecycle",
+      "gcp-capstone"
+    ]
+  }
+]

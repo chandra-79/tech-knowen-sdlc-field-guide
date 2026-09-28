@@ -1,12 +1,4004 @@
 {
- "api-control-plane":{"title":"From a Deployment declaration to a running Pod","nodes":[["kubectl","Submit desired Deployment"],["API server + etcd","Authorize, admit and persist"],["Controllers","Create ReplicaSet and Pods"],["Scheduler","Bind an unscheduled Pod"],["kubelet + runtime","Start assigned containers"],["Status and readiness","Report observed health"]],"edges":[[0,1,"request"],[1,2,"watch"],[2,3,"Pod via API"],[3,4,"binding via API"],[4,5,"observe"]],"caption":"API-mediated reconciliation is asynchronous. Controllers, scheduler and kubelet use the API; the linear path is a responsibility sequence, not direct calls from controller to scheduler."},
- "services-dns":{"title":"A banking request takes the data-plane path","nodes":[["Client Pod","Requests bank-web"],["Cluster DNS","Returns Service address"],["Service data plane","Uses endpoint information"],["Ready web Pod","Listens on targetPort 80"],["Application response","Returns the learning page"],["API/control plane","Publishes desired route state"]],"edges":[[0,1,"resolve"],[1,2,"client connects"],[2,3,"forward"],[3,4,"respond"]],"caption":"The client resolves the name, then sends traffic through the implemented data plane. DNS does not proxy the HTTP request. The API supplies configuration; it is not on the application packet path."},
- "probes":{"title":"Probe failure has different consequences","nodes":[["Startup not complete","Hold other probes back"],["Startup succeeds","Enable ordinary health checks"],["Readiness fails","Ready condition becomes false"],["Endpoint updates","Remove from normal traffic"],["Liveness threshold fails","Restart the container"],["Application correctness","Still needs end-to-end tests"]],"edges":[[0,1,"success"],[1,2,"readiness branch"],[2,3,"propagate"],[1,4,"liveness branch"]],"caption":"Readiness and liveness are independent after startup succeeds. A restart is not the action for readiness failure. Endpoint changes are asynchronous."},
- "identity-rbac":{"title":"Three separate gates for an API write","nodes":[["Presented identity","Token or certificate"],["Authentication","Recognize the caller"],["Authorization","Permit verb/resource/scope"],["Admission","Validate or mutate a write"],["Persisted API state","Accept desired object"],["Reconciliation","Runtime outcome follows later"]],"edges":[[0,1,"identify"],[1,2,"policy check"],[2,3,"if allowed"],[3,4,"if admitted"],[4,5,"observe intent"]],"caption":"An authenticated caller can be forbidden; an authorized write can be rejected by admission. An accepted object can still fail to become a healthy workload."},
- "storage":{"title":"Storage follows a lifecycle beyond one container","nodes":[["PVC request","Capacity, class and access"],["Scheduling context","Topology may be needed first"],["Storage provisioner","Create or select backing volume"],["PV binding","Associate claim and volume"],["Node mount","Expose data to the container"],["Application backup","Separate recoverable checkpoint"]],"edges":[[0,1,"late binding"],[1,2,"compatible location"],[2,3,"bind"],[3,4,"attach/mount"]],"caption":"This example shows delayed binding. Other classes can bind immediately. The backup is a separate responsibility; a mounted volume is not a verified restore."},
- "rollouts":{"title":"Rolling update with two desired replicas","nodes":[["Old revision","Two ready replicas"],["Surge capacity","Allow one candidate Pod"],["Candidate readiness","Check real serving readiness"],["Reduce old revision","Only after capacity is ready"],["Complete rollout","New revision serves requests"],["Stalled candidate","Inspect Events; restore version"]],"edges":[[0,1,"new template"],[1,2,"start"],[2,3,"if ready"],[3,4,"repeat"],[2,5,"if failure"]],"caption":"Assumes maxSurge 1 and maxUnavailable 0. Spare schedulable capacity is required. Rollback changes the workload template, not external database effects."},
- "network-policy":{"title":"A connection needs both relevant directions allowed","nodes":[["Source Pod","Identity through labels"],["Egress policies","Union of source allowances"],["DNS dependency","Resolve names if needed"],["Destination ingress","Union of destination allowances"],["Listening application","Target port must be open"],["Enforcing CNI","Programs the actual controls"]],"edges":[[0,1,"send"],[1,3,"allowed path"],[3,4,"allow target port"]],"caption":"DNS and the enforcing implementation are dependencies, not policy objects that automatically run in sequence. Test both allowed and denied clients. Policies do not create listeners."},
- "cluster-internals":{"title":"Control-plane state versus node execution","nodes":[["API endpoint","TLS, identity and admission"],["etcd quorum","Persist Kubernetes state"],["Controllers","Reconcile desired objects"],["Scheduler","Choose eligible node"],["kubelet","Observe assignment and health"],["CRI runtime + CNI","Start sandbox and containers"]],"edges":[[0,1,"persist"],[0,2,"watch API"],[0,3,"watch API"],[3,4,"binding via API"],[4,5,"execute"]],"caption":"Control-plane components coordinate through API state. etcd is not the bank application database. Placement and execution are separate responsibilities."},
- "etcd-recovery":{"title":"A recoverable service needs several checkpoints","nodes":[["etcd snapshot","Kubernetes API state"],["Infrastructure code","Networks and cluster settings"],["Image registry","Required artifact digests"],["Application data","Database / volume backup"],["Isolated restore","Rebuild compatible dependencies"],["Acceptance evidence","Data correctness and requests"]],"edges":[[0,4,"restore API state"],[1,4,"recreate"],[2,4,"supply artifacts"],[3,4,"restore data"],[4,5,"verify"]],"caption":"These are separate recovery inputs. An etcd snapshot alone does not contain image binaries, every volume or external service state."},
- "gateway-api":{"title":"Ownership and reference boundaries in Gateway API","nodes":[["GatewayClass","Implementation selection"],["Gateway listener","Platform-owned entry point"],["HTTPRoute","Application-owned routing"],["Backend Service","Resolves ready backends"],["ReferenceGrant","Target namespace permits reference"],["Controller data plane","Programs and serves traffic"]],"edges":[[0,1,"class"],[1,2,"allowed attachment"],[2,3,"backend reference"],[4,3,"if cross-namespace"],[1,5,"reconcile"]],"caption":"Route attachment and cross-namespace backend permission are separate checks. The configured data plane must actually serve a request; declarations and status are complementary evidence."}
+  "api-control-plane": {
+    "title": "From a Deployment declaration to a running Pod",
+    "nodes": [
+      [
+        "kubectl",
+        "Submit desired Deployment"
+      ],
+      [
+        "API server + etcd",
+        "Authorize, admit and persist"
+      ],
+      [
+        "Controllers",
+        "Create ReplicaSet and Pods"
+      ],
+      [
+        "Scheduler",
+        "Bind an unscheduled Pod"
+      ],
+      [
+        "kubelet + runtime",
+        "Start assigned containers"
+      ],
+      [
+        "Status and readiness",
+        "Report observed health"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "request"
+      ],
+      [
+        1,
+        2,
+        "watch"
+      ],
+      [
+        2,
+        3,
+        "Pod via API"
+      ],
+      [
+        3,
+        4,
+        "binding via API"
+      ],
+      [
+        4,
+        5,
+        "observe"
+      ]
+    ],
+    "caption": "API-mediated reconciliation is asynchronous. Controllers, scheduler and kubelet use the API; the linear path is a responsibility sequence, not direct calls from controller to scheduler."
+  },
+  "services-dns": {
+    "title": "A banking request takes the data-plane path",
+    "nodes": [
+      [
+        "Client Pod",
+        "Requests bank-web"
+      ],
+      [
+        "Cluster DNS",
+        "Returns Service address"
+      ],
+      [
+        "Service data plane",
+        "Uses endpoint information"
+      ],
+      [
+        "Ready web Pod",
+        "Listens on targetPort 80"
+      ],
+      [
+        "Application response",
+        "Returns the learning page"
+      ],
+      [
+        "API/control plane",
+        "Publishes desired route state"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "resolve"
+      ],
+      [
+        1,
+        2,
+        "client connects"
+      ],
+      [
+        2,
+        3,
+        "forward"
+      ],
+      [
+        3,
+        4,
+        "respond"
+      ]
+    ],
+    "caption": "The client resolves the name, then sends traffic through the implemented data plane. DNS does not proxy the HTTP request. The API supplies configuration; it is not on the application packet path."
+  },
+  "probes": {
+    "title": "Probe failure has different consequences",
+    "nodes": [
+      [
+        "Startup not complete",
+        "Hold other probes back"
+      ],
+      [
+        "Startup succeeds",
+        "Enable ordinary health checks"
+      ],
+      [
+        "Readiness fails",
+        "Ready condition becomes false"
+      ],
+      [
+        "Endpoint updates",
+        "Remove from normal traffic"
+      ],
+      [
+        "Liveness threshold fails",
+        "Restart the container"
+      ],
+      [
+        "Application correctness",
+        "Still needs end-to-end tests"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "success"
+      ],
+      [
+        1,
+        2,
+        "readiness branch"
+      ],
+      [
+        2,
+        3,
+        "propagate"
+      ],
+      [
+        1,
+        4,
+        "liveness branch"
+      ]
+    ],
+    "caption": "Readiness and liveness are independent after startup succeeds. A restart is not the action for readiness failure. Endpoint changes are asynchronous."
+  },
+  "identity-rbac": {
+    "title": "Three separate gates for an API write",
+    "nodes": [
+      [
+        "Presented identity",
+        "Token or certificate"
+      ],
+      [
+        "Authentication",
+        "Recognize the caller"
+      ],
+      [
+        "Authorization",
+        "Permit verb/resource/scope"
+      ],
+      [
+        "Admission",
+        "Validate or mutate a write"
+      ],
+      [
+        "Persisted API state",
+        "Accept desired object"
+      ],
+      [
+        "Reconciliation",
+        "Runtime outcome follows later"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "identify"
+      ],
+      [
+        1,
+        2,
+        "policy check"
+      ],
+      [
+        2,
+        3,
+        "if allowed"
+      ],
+      [
+        3,
+        4,
+        "if admitted"
+      ],
+      [
+        4,
+        5,
+        "observe intent"
+      ]
+    ],
+    "caption": "An authenticated caller can be forbidden; an authorized write can be rejected by admission. An accepted object can still fail to become a healthy workload."
+  },
+  "storage": {
+    "title": "Storage follows a lifecycle beyond one container",
+    "nodes": [
+      [
+        "PVC request",
+        "Capacity, class and access"
+      ],
+      [
+        "Scheduling context",
+        "Topology may be needed first"
+      ],
+      [
+        "Storage provisioner",
+        "Create or select backing volume"
+      ],
+      [
+        "PV binding",
+        "Associate claim and volume"
+      ],
+      [
+        "Node mount",
+        "Expose data to the container"
+      ],
+      [
+        "Application backup",
+        "Separate recoverable checkpoint"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "late binding"
+      ],
+      [
+        1,
+        2,
+        "compatible location"
+      ],
+      [
+        2,
+        3,
+        "bind"
+      ],
+      [
+        3,
+        4,
+        "attach/mount"
+      ]
+    ],
+    "caption": "This example shows delayed binding. Other classes can bind immediately. The backup is a separate responsibility; a mounted volume is not a verified restore."
+  },
+  "rollouts": {
+    "title": "Rolling update with two desired replicas",
+    "nodes": [
+      [
+        "Old revision",
+        "Two ready replicas"
+      ],
+      [
+        "Surge capacity",
+        "Allow one candidate Pod"
+      ],
+      [
+        "Candidate readiness",
+        "Check real serving readiness"
+      ],
+      [
+        "Reduce old revision",
+        "Only after capacity is ready"
+      ],
+      [
+        "Complete rollout",
+        "New revision serves requests"
+      ],
+      [
+        "Stalled candidate",
+        "Inspect Events; restore version"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "new template"
+      ],
+      [
+        1,
+        2,
+        "start"
+      ],
+      [
+        2,
+        3,
+        "if ready"
+      ],
+      [
+        3,
+        4,
+        "repeat"
+      ],
+      [
+        2,
+        5,
+        "if failure"
+      ]
+    ],
+    "caption": "Assumes maxSurge 1 and maxUnavailable 0. Spare schedulable capacity is required. Rollback changes the workload template, not external database effects."
+  },
+  "network-policy": {
+    "title": "A connection needs both relevant directions allowed",
+    "nodes": [
+      [
+        "Source Pod",
+        "Identity through labels"
+      ],
+      [
+        "Egress policies",
+        "Union of source allowances"
+      ],
+      [
+        "DNS dependency",
+        "Resolve names if needed"
+      ],
+      [
+        "Destination ingress",
+        "Union of destination allowances"
+      ],
+      [
+        "Listening application",
+        "Target port must be open"
+      ],
+      [
+        "Enforcing CNI",
+        "Programs the actual controls"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "send"
+      ],
+      [
+        1,
+        3,
+        "allowed path"
+      ],
+      [
+        3,
+        4,
+        "allow target port"
+      ]
+    ],
+    "caption": "DNS and the enforcing implementation are dependencies, not policy objects that automatically run in sequence. Test both allowed and denied clients. Policies do not create listeners."
+  },
+  "cluster-internals": {
+    "title": "Control-plane state versus node execution",
+    "nodes": [
+      [
+        "API endpoint",
+        "TLS, identity and admission"
+      ],
+      [
+        "etcd quorum",
+        "Persist Kubernetes state"
+      ],
+      [
+        "Controllers",
+        "Reconcile desired objects"
+      ],
+      [
+        "Scheduler",
+        "Choose eligible node"
+      ],
+      [
+        "kubelet",
+        "Observe assignment and health"
+      ],
+      [
+        "CRI runtime + CNI",
+        "Start sandbox and containers"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "persist"
+      ],
+      [
+        0,
+        2,
+        "watch API"
+      ],
+      [
+        0,
+        3,
+        "watch API"
+      ],
+      [
+        3,
+        4,
+        "binding via API"
+      ],
+      [
+        4,
+        5,
+        "execute"
+      ]
+    ],
+    "caption": "Control-plane components coordinate through API state. etcd is not the bank application database. Placement and execution are separate responsibilities."
+  },
+  "etcd-recovery": {
+    "title": "A recoverable service needs several checkpoints",
+    "nodes": [
+      [
+        "etcd snapshot",
+        "Kubernetes API state"
+      ],
+      [
+        "Infrastructure code",
+        "Networks and cluster settings"
+      ],
+      [
+        "Image registry",
+        "Required artifact digests"
+      ],
+      [
+        "Application data",
+        "Database / volume backup"
+      ],
+      [
+        "Isolated restore",
+        "Rebuild compatible dependencies"
+      ],
+      [
+        "Acceptance evidence",
+        "Data correctness and requests"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        4,
+        "restore API state"
+      ],
+      [
+        1,
+        4,
+        "recreate"
+      ],
+      [
+        2,
+        4,
+        "supply artifacts"
+      ],
+      [
+        3,
+        4,
+        "restore data"
+      ],
+      [
+        4,
+        5,
+        "verify"
+      ]
+    ],
+    "caption": "These are separate recovery inputs. An etcd snapshot alone does not contain image binaries, every volume or external service state."
+  },
+  "gateway-api": {
+    "title": "Ownership and reference boundaries in Gateway API",
+    "nodes": [
+      [
+        "GatewayClass",
+        "Implementation selection"
+      ],
+      [
+        "Gateway listener",
+        "Platform-owned entry point"
+      ],
+      [
+        "HTTPRoute",
+        "Application-owned routing"
+      ],
+      [
+        "Backend Service",
+        "Resolves ready backends"
+      ],
+      [
+        "ReferenceGrant",
+        "Target namespace permits reference"
+      ],
+      [
+        "Controller data plane",
+        "Programs and serves traffic"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "class"
+      ],
+      [
+        1,
+        2,
+        "allowed attachment"
+      ],
+      [
+        2,
+        3,
+        "backend reference"
+      ],
+      [
+        4,
+        3,
+        "if cross-namespace"
+      ],
+      [
+        1,
+        5,
+        "reconcile"
+      ]
+    ],
+    "caption": "Route attachment and cross-namespace backend permission are separate checks. The configured data plane must actually serve a request; declarations and status are complementary evidence."
+  },
+  "gcp-network": {
+    "title": "Trace two different outbound destinations",
+    "nodes": [
+      [
+        "Private workload",
+        "No external address on the instance"
+      ],
+      [
+        "VPC routing and firewall",
+        "Permit the intended outbound path"
+      ],
+      [
+        "Public internet",
+        "External registry or API destination"
+      ],
+      [
+        "Google API endpoint",
+        "Supported Google service destination"
+      ],
+      [
+        "Cloud NAT path",
+        "Configured public egress and return"
+      ],
+      [
+        "Private Google Access",
+        "Configured access to Google APIs"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "connection attempt"
+      ],
+      [
+        1,
+        4,
+        "public destination path"
+      ],
+      [
+        4,
+        2,
+        "translated outbound connection"
+      ],
+      [
+        1,
+        5,
+        "eligible Google API path"
+      ],
+      [
+        5,
+        3,
+        "reach supported endpoint"
+      ]
+    ],
+    "caption": "The two branches are alternatives by destination and configuration. This simplified map excludes Private Service Connect and private services access, which have different purposes. Neither route bypasses application authentication."
+  },
+  "gke-identity": {
+    "title": "Workload identity and resource authorization",
+    "nodes": [
+      [
+        "Pod in tk-bank",
+        "serviceAccountName: bank-reports"
+      ],
+      [
+        "Kubernetes ServiceAccount",
+        "Namespace/name identify the subject"
+      ],
+      [
+        "GKE identity integration",
+        "Obtain short-lived federated identity"
+      ],
+      [
+        "Resource IAM binding",
+        "Grant objectViewer on the dummy bucket"
+      ],
+      [
+        "Dummy bucket read",
+        "Allowed operation on intended data"
+      ],
+      [
+        "Denied write",
+        "No object creation grant"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "runs with named KSA"
+      ],
+      [
+        1,
+        2,
+        "federated subject"
+      ],
+      [
+        2,
+        3,
+        "authorize API request"
+      ],
+      [
+        3,
+        4,
+        "read permitted"
+      ],
+      [
+        3,
+        5,
+        "write not granted"
+      ]
+    ],
+    "caption": "This illustrates direct principal access. IAM service-account impersonation is a separate supported pattern, not an extra mandatory step. Runtime identity does not come from downloading a key."
+  },
+  "gcp-delivery": {
+    "title": "Promote the same artifact with separate authority",
+    "nodes": [
+      [
+        "Source revision",
+        "Reviewed application change"
+      ],
+      [
+        "Build identity",
+        "Run tests and build the image"
+      ],
+      [
+        "Artifact Registry",
+        "Store the approved image digest"
+      ],
+      [
+        "Release identity",
+        "Promote to the intended target"
+      ],
+      [
+        "Running workload",
+        "Compare deployed digest and readiness"
+      ],
+      [
+        "User outcome",
+        "Verify response and recovery criteria"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "build input"
+      ],
+      [
+        1,
+        2,
+        "publish artifact and evidence"
+      ],
+      [
+        2,
+        3,
+        "select immutable digest"
+      ],
+      [
+        3,
+        4,
+        "authorised deployment"
+      ],
+      [
+        4,
+        5,
+        "observe actual behaviour"
+      ]
+    ],
+    "caption": "Build and release identities have different responsibilities. Provenance and scanning support trust decisions; they do not replace application tests or database migration planning."
+  },
+  "gcp-recovery": {
+    "title": "Several independent inputs rebuild one service",
+    "nodes": [
+      [
+        "Infrastructure configuration",
+        "Network, cluster, identity and policy"
+      ],
+      [
+        "Registry artifacts",
+        "Required image digests available"
+      ],
+      [
+        "Workload / volume backup",
+        "Supported GKE resources and data"
+      ],
+      [
+        "External database checkpoint",
+        "Separate recovery and reconciliation"
+      ],
+      [
+        "Replacement environment",
+        "Restore in reviewed dependency order"
+      ],
+      [
+        "Service acceptance",
+        "Known data and real request checks"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        4,
+        "recreate foundation"
+      ],
+      [
+        1,
+        4,
+        "provide application bytes"
+      ],
+      [
+        2,
+        4,
+        "restore supported resources"
+      ],
+      [
+        3,
+        4,
+        "recover external data"
+      ],
+      [
+        4,
+        5,
+        "measure recovery and correctness"
+      ]
+    ],
+    "caption": "An etcd or GKE backup alone is not a complete banking service recovery. The target environment, keys, quotas and external dependencies must be available and tested."
+  },
+  "gcp-events": {
+    "title": "Retry without duplicating a business effect",
+    "nodes": [
+      [
+        "Published request",
+        "Stable report-request ID"
+      ],
+      [
+        "Consumer receives",
+        "Delivery may be retried"
+      ],
+      [
+        "Durable result store",
+        "Uniqueness and processing record"
+      ],
+      [
+        "Acknowledgement",
+        "After durable success condition"
+      ],
+      [
+        "Crash before acknowledgement",
+        "Result may already exist"
+      ],
+      [
+        "Redelivery handling",
+        "Read stored result; avoid duplicate effect"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "deliver"
+      ],
+      [
+        1,
+        2,
+        "process with idempotency"
+      ],
+      [
+        2,
+        3,
+        "on durable success"
+      ],
+      [
+        2,
+        4,
+        "possible crash window"
+      ],
+      [
+        4,
+        5,
+        "same request ID delivered again"
+      ]
+    ],
+    "caption": "The duplicate-delivery branch requires application/storage logic. A messaging feature does not atomically cover arbitrary external side effects."
+  },
+  "gcp-ai": {
+    "title": "Permission-aware retrieval with an evaluation boundary",
+    "nodes": [
+      [
+        "User question",
+        "Public help only"
+      ],
+      [
+        "Authorised retrieval",
+        "Search only permitted source material"
+      ],
+      [
+        "Selected context",
+        "Treat retrieved text as untrusted"
+      ],
+      [
+        "Model invocation",
+        "Bound task, tools and output"
+      ],
+      [
+        "Evaluation / guardrails",
+        "Grounding, leakage, safety and latency"
+      ],
+      [
+        "Answer or escalation",
+        "Cited help or explicit handoff"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "request context"
+      ],
+      [
+        1,
+        2,
+        "filter and retrieve"
+      ],
+      [
+        2,
+        3,
+        "provide evidence, not authority"
+      ],
+      [
+        3,
+        4,
+        "assess output"
+      ],
+      [
+        4,
+        5,
+        "release or fall back"
+      ]
+    ],
+    "caption": "Retrieval is not proof of truth. No step grants account access or transfer authority. Offline test cases describe expected behaviour; actual model performance requires execution evidence."
+  },
+  "gke-network": {
+    "title": "Separate desired routing from serving a request",
+    "nodes": [
+      [
+        "Gateway / route intent",
+        "Host, path, listener and backend"
+      ],
+      [
+        "GKE controller",
+        "Reconcile supported configuration"
+      ],
+      [
+        "Cloud load-balancing state",
+        "Forwarding and health-check setup"
+      ],
+      [
+        "Healthy selected backends",
+        "Ready endpoints and reachable ports"
+      ],
+      [
+        "Client request",
+        "DNS, TLS and entry point"
+      ],
+      [
+        "Application response",
+        "Correct page and observed latency"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "accepted configuration"
+      ],
+      [
+        1,
+        2,
+        "program implementation"
+      ],
+      [
+        2,
+        3,
+        "check and route to backends"
+      ],
+      [
+        4,
+        2,
+        "send user request"
+      ],
+      [
+        3,
+        5,
+        "serve selected workload"
+      ]
+    ],
+    "caption": "Control-plane reconciliation and client traffic are different paths. Exact backend and load-balancer resources depend on the chosen supported GKE implementation."
+  },
+  "gcp-hierarchy": {
+    "title": "Hierarchy inheritance and separate billing linkage",
+    "nodes": [
+      [
+        "Organisation",
+        "Enterprise root and policy context"
+      ],
+      [
+        "Environment folder",
+        "Group related projects"
+      ],
+      [
+        "Workload project",
+        "APIs, resources and project policies"
+      ],
+      [
+        "Resource",
+        "Effective ancestor and local controls"
+      ],
+      [
+        "Billing account",
+        "Payment relationship"
+      ],
+      [
+        "Service-project network use",
+        "Shared VPC where configured"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "hierarchy parent"
+      ],
+      [
+        1,
+        2,
+        "hierarchy parent"
+      ],
+      [
+        2,
+        3,
+        "contains scoped resources"
+      ],
+      [
+        4,
+        2,
+        "billing association, not ancestry"
+      ],
+      [
+        2,
+        5,
+        "authorised shared network use"
+      ]
+    ],
+    "caption": "Billing is shown separately from hierarchy. Effective access can include inherited grants and constraints; folder placement is not a billing transfer."
+  },
+  "gcp-migration": {
+    "title": "A cutover has a write boundary",
+    "nodes": [
+      [
+        "Source system",
+        "Current authority and dependencies"
+      ],
+      [
+        "Target environment",
+        "Prepared and tested destination"
+      ],
+      [
+        "Data synchronisation",
+        "Known checkpoint and change capture"
+      ],
+      [
+        "Cutover gate",
+        "Validation and write-ownership decision"
+      ],
+      [
+        "New target writes",
+        "Potential source/target divergence"
+      ],
+      [
+        "Recovery decision",
+        "Reconcile before reversing authority"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "copy and synchronise"
+      ],
+      [
+        2,
+        1,
+        "populate target"
+      ],
+      [
+        1,
+        3,
+        "verify readiness"
+      ],
+      [
+        3,
+        4,
+        "permit target authority"
+      ],
+      [
+        4,
+        5,
+        "plan post-write recovery"
+      ]
+    ],
+    "caption": "Before target writes, aborting may be simple. After target writes, changing traffic alone is insufficient: data authority and reconciliation must be resolved."
+  },
+  "gcp-data": {
+    "title": "Illustrative transfer transaction and reporting boundary",
+    "nodes": [
+      [
+        "Transfer request",
+        "Stable idempotency key"
+      ],
+      [
+        "Transaction boundary",
+        "Validate and enforce durable uniqueness"
+      ],
+      [
+        "Ledger effects",
+        "Debit, credit and record together"
+      ],
+      [
+        "Committed result",
+        "Store outcome for retry lookup"
+      ],
+      [
+        "Retry after timeout",
+        "Same key resolves prior outcome"
+      ],
+      [
+        "Reporting pipeline",
+        "Controlled copy for analytical use"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "validate request"
+      ],
+      [
+        1,
+        2,
+        "atomic effects in chosen model"
+      ],
+      [
+        2,
+        3,
+        "commit durable result"
+      ],
+      [
+        4,
+        3,
+        "look up existing outcome"
+      ],
+      [
+        3,
+        5,
+        "publish/report after commit"
+      ]
+    ],
+    "caption": "This is a proposed business design, not implemented banking functionality. Precise transaction, event-publication and reconciliation semantics must be designed and tested for the selected database."
+  },
+  "orientation": {
+    "title": "Different layers own different outcomes",
+    "nodes": [
+      [
+        "Application intent",
+        "Two web replicas requested"
+      ],
+      [
+        "Kubernetes API",
+        "Store accepted desired state"
+      ],
+      [
+        "Control loops",
+        "Create missing workload objects"
+      ],
+      [
+        "Worker node",
+        "Execute assigned containers"
+      ],
+      [
+        "Service request",
+        "Reach an eligible backend"
+      ],
+      [
+        "Business correctness",
+        "Application rules and data invariants"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "declare"
+      ],
+      [
+        1,
+        2,
+        "observe state"
+      ],
+      [
+        2,
+        3,
+        "assignment via API"
+      ],
+      [
+        4,
+        3,
+        "application traffic"
+      ]
+    ],
+    "caption": "Kubernetes coordinates execution. The business-correctness box is a separate responsibility that replica management cannot supply."
+  },
+  "terminal": {
+    "title": "Read a manifest through three kinds of validation",
+    "nodes": [
+      [
+        "Text file",
+        "Whitespace and spelling"
+      ],
+      [
+        "YAML structure",
+        "Maps, lists and values"
+      ],
+      [
+        "API schema",
+        "Kind, version and valid fields"
+      ],
+      [
+        "Admission decision",
+        "Cluster policy may reject a write"
+      ],
+      [
+        "Runtime state",
+        "Placement and container execution"
+      ],
+      [
+        "Request evidence",
+        "Actual HTTP result"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "parse"
+      ],
+      [
+        1,
+        2,
+        "schema check"
+      ],
+      [
+        2,
+        3,
+        "server-side validation"
+      ],
+      [
+        3,
+        4,
+        "after accepted live apply"
+      ],
+      [
+        4,
+        5,
+        "verify serving path"
+      ]
+    ],
+    "caption": "Parsing, dry-run and runtime testing establish different facts. Server-side dry-run does not persist the workload or execute its containers."
+  },
+  "setup": {
+    "title": "The local cluster has nested execution layers",
+    "nodes": [
+      [
+        "Laptop operating system",
+        "Your terminal and files"
+      ],
+      [
+        "Container engine",
+        "Linux environment for kind nodes"
+      ],
+      [
+        "kind node container",
+        "Node services inside a container"
+      ],
+      [
+        "containerd in the node",
+        "Runs application containers"
+      ],
+      [
+        "Dedicated kubeconfig",
+        "Client endpoint and identity"
+      ],
+      [
+        "kubectl client",
+        "Submits requests to the lab API"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "hosts or virtualises"
+      ],
+      [
+        1,
+        2,
+        "runs node container"
+      ],
+      [
+        2,
+        3,
+        "provides runtime"
+      ],
+      [
+        4,
+        5,
+        "selects lab access"
+      ],
+      [
+        5,
+        2,
+        "contacts API in control-plane node"
+      ]
+    ],
+    "caption": "This is a local learning topology. It does not create independent physical failure domains or native cloud load balancers."
+  },
+  "starter": {
+    "title": "Selectors connect independent declarations",
+    "nodes": [
+      [
+        "Deployment",
+        "app=bank-web in Pod template"
+      ],
+      [
+        "ReplicaSet",
+        "Maintains desired replica count"
+      ],
+      [
+        "Ready web Pods",
+        "Mount and serve learning page"
+      ],
+      [
+        "ConfigMap",
+        "Contains fictional HTML"
+      ],
+      [
+        "Service selector",
+        "app=bank-web selects endpoints"
+      ],
+      [
+        "Local port-forward",
+        "Temporary client access path"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "controller creates"
+      ],
+      [
+        1,
+        2,
+        "owns and replaces"
+      ],
+      [
+        3,
+        2,
+        "mounted page content"
+      ],
+      [
+        4,
+        2,
+        "selects eligible backends"
+      ],
+      [
+        5,
+        4,
+        "use Service selection for access"
+      ]
+    ],
+    "caption": "A Service selector does not create Pods. The localhost port-forward is a learning access path; it does not demonstrate an external load balancer."
+  },
+  "objects-contexts": {
+    "title": "Scope, grouping and ownership are different axes",
+    "nodes": [
+      [
+        "Context",
+        "Cluster, identity and default scope"
+      ],
+      [
+        "Namespace",
+        "Organises namespaced objects"
+      ],
+      [
+        "Named Deployment",
+        "A particular API object"
+      ],
+      [
+        "ReplicaSet and Pods",
+        "Owned child resources"
+      ],
+      [
+        "Labels and selector",
+        "Queryable grouping of objects"
+      ],
+      [
+        "Cluster-scoped resources",
+        "Nodes, PVs and ClusterRoles"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "choose default namespace"
+      ],
+      [
+        1,
+        2,
+        "contains namespaced object"
+      ],
+      [
+        2,
+        3,
+        "ownership chain"
+      ],
+      [
+        4,
+        3,
+        "select matching objects"
+      ]
+    ],
+    "caption": "Labels group objects; ownerReferences establish ownership. Cluster-scoped resources sit outside namespace containment."
+  },
+  "images": {
+    "title": "Build inputs become content-addressed runtime artifacts",
+    "nodes": [
+      [
+        "Source and dependencies",
+        "Reviewed build inputs"
+      ],
+      [
+        "Dockerfile and context",
+        "Instructions plus included files"
+      ],
+      [
+        "Image layers",
+        "Build output and metadata"
+      ],
+      [
+        "Registry digest",
+        "Immutable content identity"
+      ],
+      [
+        "Pod image reference",
+        "Select the approved artifact"
+      ],
+      [
+        "Runtime container",
+        "Process with writable runtime state"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "supply build context"
+      ],
+      [
+        1,
+        2,
+        "build"
+      ],
+      [
+        2,
+        3,
+        "push and identify"
+      ],
+      [
+        3,
+        4,
+        "pin selected content"
+      ],
+      [
+        4,
+        5,
+        "pull and start"
+      ]
+    ],
+    "caption": "A digest identifies bytes; it does not prove security. Runtime filesystem changes do not modify the original registry image."
+  },
+  "pod-design": {
+    "title": "Pod replacement differs from a container restart",
+    "nodes": [
+      [
+        "Pod specification",
+        "Containers, volumes and policy"
+      ],
+      [
+        "Scheduled Pod identity",
+        "UID and assigned node"
+      ],
+      [
+        "Container process",
+        "Runs image entrypoint and arguments"
+      ],
+      [
+        "Process exit",
+        "Exit code and termination reason"
+      ],
+      [
+        "Restart policy",
+        "May restart container in same Pod"
+      ],
+      [
+        "Controller replacement",
+        "Creates new Pod with new UID"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "assign node"
+      ],
+      [
+        1,
+        2,
+        "kubelet starts"
+      ],
+      [
+        2,
+        3,
+        "process terminates"
+      ],
+      [
+        3,
+        4,
+        "evaluate restart behaviour"
+      ],
+      [
+        4,
+        2,
+        "restart when policy requires"
+      ]
+    ],
+    "caption": "Controller replacement is a separate response when the managed Pod is removed or replaced. Restarting a container does not change the Pod UID."
+  },
+  "init-sidecars": {
+    "title": "Initialization and a native sidecar have different lifetimes",
+    "nodes": [
+      [
+        "Regular init container",
+        "Finite preparation task"
+      ],
+      [
+        "Successful preparation",
+        "Exit successfully before next init"
+      ],
+      [
+        "Native sidecar init entry",
+        "restartPolicy Always for that entry"
+      ],
+      [
+        "Sidecar started condition",
+        "Startup probe can gate progress"
+      ],
+      [
+        "Application containers",
+        "Run ordinary workload"
+      ],
+      [
+        "Pod termination",
+        "Orderly shutdown and sidecar handling"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "must complete"
+      ],
+      [
+        1,
+        2,
+        "next init in this example"
+      ],
+      [
+        2,
+        3,
+        "becomes started"
+      ],
+      [
+        3,
+        4,
+        "allow next stage"
+      ],
+      [
+        4,
+        5,
+        "termination requested"
+      ]
+    ],
+    "caption": "This example deliberately puts a regular init before a native sidecar. A native sidecar continues running; it does not need to exit successfully before the application starts."
+  },
+  "workload-choice": {
+    "title": "Choose a controller from the work requirement",
+    "nodes": [
+      [
+        "Workload requirement",
+        "What identity and lifetime are needed?"
+      ],
+      [
+        "Deployment",
+        "Interchangeable ongoing replicas"
+      ],
+      [
+        "StatefulSet",
+        "Stable identity and ordered semantics"
+      ],
+      [
+        "DaemonSet",
+        "Node-local service on eligible nodes"
+      ],
+      [
+        "Job",
+        "Finite work with completion"
+      ],
+      [
+        "CronJob",
+        "Schedule creation of Jobs"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "interchangeable service"
+      ],
+      [
+        0,
+        2,
+        "stable identity requirement"
+      ],
+      [
+        0,
+        3,
+        "per-node responsibility"
+      ],
+      [
+        0,
+        4,
+        "finite task"
+      ],
+      [
+        0,
+        5,
+        "scheduled finite work"
+      ]
+    ],
+    "caption": "Controllers are alternatives for different needs. StatefulSet identity alone does not replicate a database or prove safe failover."
+  },
+  "jobs": {
+    "title": "Scheduling and processing need separate duplicate controls",
+    "nodes": [
+      [
+        "CronJob schedule",
+        "Defines when Jobs are requested"
+      ],
+      [
+        "Job object",
+        "Tracks completion of task Pods"
+      ],
+      [
+        "Worker Pod",
+        "Runs report generation"
+      ],
+      [
+        "Durable report identity",
+        "Deduplicates business effects"
+      ],
+      [
+        "Failure or interruption",
+        "Can cause retries/replacement"
+      ],
+      [
+        "Concurrency policy",
+        "Controls overlap of scheduled Jobs"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "schedule controller creates"
+      ],
+      [
+        1,
+        2,
+        "start task Pod"
+      ],
+      [
+        2,
+        3,
+        "commit effect safely"
+      ],
+      [
+        4,
+        1,
+        "retry subject to policy"
+      ],
+      [
+        5,
+        0,
+        "constrain scheduled overlap"
+      ]
+    ],
+    "caption": "CronJob scheduling is not an exactly-once business guarantee. A concurrency policy does not replace durable idempotency."
+  },
+  "configuration": {
+    "title": "Configuration reaches containers in different ways",
+    "nodes": [
+      [
+        "ConfigMap object",
+        "Non-secret configuration values"
+      ],
+      [
+        "Environment variable",
+        "Captured when container starts"
+      ],
+      [
+        "Mounted directory",
+        "Updates propagate eventually"
+      ],
+      [
+        "Application reload logic",
+        "Must actually reread changed files"
+      ],
+      [
+        "subPath mount",
+        "Does not receive normal updates"
+      ],
+      [
+        "Pod-template change",
+        "Triggers Deployment rollout"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "inject at start"
+      ],
+      [
+        0,
+        2,
+        "project into volume"
+      ],
+      [
+        2,
+        3,
+        "only effective if reread"
+      ],
+      [
+        0,
+        4,
+        "subPath update limitation"
+      ],
+      [
+        5,
+        1,
+        "new containers capture values"
+      ]
+    ],
+    "caption": "Updating a ConfigMap object alone does not necessarily roll out Pods or reload application settings. Choose and verify a configuration delivery strategy."
+  },
+  "secrets": {
+    "title": "A Secret crosses several protection boundaries",
+    "nodes": [
+      [
+        "Secret API object",
+        "Sensitive values, often base64 encoded"
+      ],
+      [
+        "API authorization",
+        "Who may read or change it?"
+      ],
+      [
+        "Storage protection",
+        "Encryption-at-rest configuration"
+      ],
+      [
+        "Pod consumption",
+        "Volume or environment delivery"
+      ],
+      [
+        "Application process",
+        "Use without leaking to logs"
+      ],
+      [
+        "Rotation procedure",
+        "Update and verify consumers"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "govern API access"
+      ],
+      [
+        0,
+        2,
+        "protect persisted state"
+      ],
+      [
+        0,
+        3,
+        "deliver to authorised workload"
+      ],
+      [
+        3,
+        4,
+        "consume value"
+      ],
+      [
+        5,
+        3,
+        "refresh using chosen mechanism"
+      ]
+    ],
+    "caption": "Base64 is encoding, not encryption. Restrict workload creation and node access as well as direct Secret reads; never publish credential payloads in evidence."
+  },
+  "resources": {
+    "title": "Requests, limits and admission answer different questions",
+    "nodes": [
+      [
+        "Pod resource specification",
+        "CPU/memory requests and limits"
+      ],
+      [
+        "LimitRange / quota",
+        "Admission defaults or restrictions"
+      ],
+      [
+        "Scheduler",
+        "Use requests and node feasibility"
+      ],
+      [
+        "Runtime CPU control",
+        "Limits may cause throttling"
+      ],
+      [
+        "Runtime memory control",
+        "Exceeding limits may lead to OOM"
+      ],
+      [
+        "Observed workload health",
+        "Latency, restarts and resource usage"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "admission constraints"
+      ],
+      [
+        1,
+        2,
+        "accepted Pod requests"
+      ],
+      [
+        0,
+        3,
+        "configure CPU controls"
+      ],
+      [
+        0,
+        4,
+        "configure memory controls"
+      ],
+      [
+        4,
+        5,
+        "inspect termination evidence"
+      ]
+    ],
+    "caption": "Scheduling acceptance does not prove enough runtime capacity. CPU throttling and memory OOM are different mechanisms with different symptoms."
+  },
+  "security-context": {
+    "title": "Restrict execution while keeping required paths usable",
+    "nodes": [
+      [
+        "Container image",
+        "Expected UID, entrypoint and files"
+      ],
+      [
+        "Non-root identity",
+        "Compatible numeric user"
+      ],
+      [
+        "Capabilities / escalation",
+        "Remove unnecessary privileges"
+      ],
+      [
+        "Read-only root filesystem",
+        "Block writes to image filesystem"
+      ],
+      [
+        "Explicit writable volume",
+        "Allow only needed scratch paths"
+      ],
+      [
+        "Observed process behaviour",
+        "UID, successful work and denied write"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "choose compatible runtime user"
+      ],
+      [
+        1,
+        2,
+        "limit process authority"
+      ],
+      [
+        0,
+        3,
+        "constrain filesystem writes"
+      ],
+      [
+        4,
+        3,
+        "separate writable mount boundary"
+      ],
+      [
+        2,
+        5,
+        "verify actual process"
+      ]
+    ],
+    "caption": "Do not force restrictions onto an incompatible image without adapting required paths and permissions. A policy setting needs observed workload evidence."
+  },
+  "debugging": {
+    "title": "Choose evidence from the failing lifecycle stage",
+    "nodes": [
+      [
+        "Observed symptom",
+        "Pending, waiting, restarting or unhealthy"
+      ],
+      [
+        "Pod Events",
+        "Scheduling, pulling and mount failures"
+      ],
+      [
+        "Current / previous logs",
+        "Application startup and prior exit"
+      ],
+      [
+        "Probe and endpoint state",
+        "Serving eligibility and routing"
+      ],
+      [
+        "Controlled correction",
+        "Change one supported hypothesis"
+      ],
+      [
+        "Repeated acceptance test",
+        "Same original request succeeds"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "infrastructure-stage evidence"
+      ],
+      [
+        0,
+        2,
+        "process-stage evidence"
+      ],
+      [
+        0,
+        3,
+        "serving-stage evidence"
+      ],
+      [
+        1,
+        4,
+        "if cause established"
+      ],
+      [
+        4,
+        5,
+        "prove correction"
+      ]
+    ],
+    "caption": "These evidence sources complement one another; follow the branch matching the symptom. Logs alone cannot explain a Pod that never started."
+  },
+  "ingress": {
+    "title": "An Ingress declaration needs an implementation",
+    "nodes": [
+      [
+        "Ingress object",
+        "Host/path/backend intent"
+      ],
+      [
+        "IngressClass",
+        "Select compatible controller"
+      ],
+      [
+        "Controller reconciliation",
+        "Interpret supported fields"
+      ],
+      [
+        "Serving data plane",
+        "Actual proxy/load-balancer setup"
+      ],
+      [
+        "Backend Service",
+        "Select ready application endpoints"
+      ],
+      [
+        "Client request",
+        "DNS, TLS, route and response"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "class association"
+      ],
+      [
+        1,
+        2,
+        "implementation selection"
+      ],
+      [
+        2,
+        3,
+        "program routing"
+      ],
+      [
+        3,
+        4,
+        "route to backend"
+      ],
+      [
+        5,
+        3,
+        "send actual request"
+      ]
+    ],
+    "caption": "An Ingress resource by itself does not install a controller. Controller-specific annotations and capabilities are not portable Kubernetes guarantees."
+  },
+  "release-strategies": {
+    "title": "Separate deployment from traffic allocation",
+    "nodes": [
+      [
+        "Approved new revision",
+        "Image and compatibility evidence"
+      ],
+      [
+        "Blue environment",
+        "Current serving revision"
+      ],
+      [
+        "Green environment",
+        "Candidate revision and checks"
+      ],
+      [
+        "Traffic entry point",
+        "Select or weight eligible backends"
+      ],
+      [
+        "Observed user outcomes",
+        "Success, latency and correctness"
+      ],
+      [
+        "Recovery decision",
+        "Restore traffic or forward-fix"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "deploy candidate"
+      ],
+      [
+        1,
+        3,
+        "current backend"
+      ],
+      [
+        2,
+        3,
+        "candidate backend"
+      ],
+      [
+        3,
+        4,
+        "measure real requests"
+      ],
+      [
+        4,
+        5,
+        "decide with evidence"
+      ]
+    ],
+    "caption": "Blue/green can switch traffic between environments; a canary sends a controlled subset. Replica ratios alone are not a precise request-weight guarantee."
+  },
+  "helm": {
+    "title": "Helm records releases but does not remove workload risk",
+    "nodes": [
+      [
+        "Chart and dependencies",
+        "Templates and package metadata"
+      ],
+      [
+        "Values",
+        "Environment-specific inputs"
+      ],
+      [
+        "Rendered manifests",
+        "Review the actual API objects"
+      ],
+      [
+        "Release revision",
+        "Install/upgrade history"
+      ],
+      [
+        "Kubernetes reconciliation",
+        "Run accepted desired state"
+      ],
+      [
+        "Rollback / recovery",
+        "Restore supported release intent"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "render with templates"
+      ],
+      [
+        1,
+        2,
+        "substitute values"
+      ],
+      [
+        2,
+        3,
+        "apply through Helm"
+      ],
+      [
+        3,
+        4,
+        "controllers reconcile"
+      ],
+      [
+        5,
+        3,
+        "select historical revision"
+      ]
+    ],
+    "caption": "A Helm rollback does not undo external database effects. Rendering and linting cannot prove runtime health; verify the deployed application."
+  },
+  "kustomize": {
+    "title": "A base becomes an environment through explicit patches",
+    "nodes": [
+      [
+        "Reusable base",
+        "Shared resource declarations"
+      ],
+      [
+        "Overlay",
+        "Select base and environment changes"
+      ],
+      [
+        "Patch / transform",
+        "Replicas, names, labels or settings"
+      ],
+      [
+        "Rendered output",
+        "Review complete resulting manifests"
+      ],
+      [
+        "API apply",
+        "Validate and persist desired objects"
+      ],
+      [
+        "Runtime evidence",
+        "Ready state and actual response"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "reference base"
+      ],
+      [
+        1,
+        2,
+        "apply intended changes"
+      ],
+      [
+        2,
+        3,
+        "build output"
+      ],
+      [
+        3,
+        4,
+        "review then submit"
+      ],
+      [
+        4,
+        5,
+        "verify reconciliation"
+      ]
+    ],
+    "caption": "Kustomize transforms manifests without a template language. Review the output because changed labels, names and selectors can alter relationships."
+  },
+  "extensions": {
+    "title": "Schema extension is not a running controller",
+    "nodes": [
+      [
+        "CRD",
+        "Register kind, scope and schema"
+      ],
+      [
+        "Custom resource",
+        "An instance of the registered kind"
+      ],
+      [
+        "API validation/storage",
+        "Accept and persist valid objects"
+      ],
+      [
+        "Operator controller",
+        "Watch and reconcile custom intent"
+      ],
+      [
+        "Managed resources",
+        "Objects or external effects"
+      ],
+      [
+        "Status and evidence",
+        "Report progress and verify effects"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "define schema"
+      ],
+      [
+        1,
+        2,
+        "submit instance"
+      ],
+      [
+        2,
+        3,
+        "watch accepted state"
+      ],
+      [
+        3,
+        4,
+        "reconcile desired behaviour"
+      ],
+      [
+        4,
+        5,
+        "observe result"
+      ]
+    ],
+    "caption": "The sample BankReport CRD registers data only. Without a controller, creating a BankReport does not generate a report."
+  },
+  "api-versions": {
+    "title": "Separate served API versions from stored resources",
+    "nodes": [
+      [
+        "Available API discovery",
+        "What this cluster currently serves"
+      ],
+      [
+        "Manifest apiVersion",
+        "Requested schema and endpoint"
+      ],
+      [
+        "Deprecation guidance",
+        "Removal timeline and replacement"
+      ],
+      [
+        "Migration change",
+        "Update fields and semantics"
+      ],
+      [
+        "Server-side dry-run",
+        "Check target cluster acceptance"
+      ],
+      [
+        "Live functional verification",
+        "Exercise the changed resource"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "check compatibility"
+      ],
+      [
+        2,
+        3,
+        "plan replacement"
+      ],
+      [
+        1,
+        3,
+        "revise old declarations"
+      ],
+      [
+        3,
+        4,
+        "validate target schema"
+      ],
+      [
+        4,
+        5,
+        "test after controlled apply"
+      ]
+    ],
+    "caption": "Changing only apiVersion may be insufficient when fields or semantics changed. A future upgrade can remove an endpoint still present today."
+  },
+  "kubeadm": {
+    "title": "Bootstrap trust before expecting a working workload",
+    "nodes": [
+      [
+        "Prepared Linux VMs",
+        "Runtime, time, network and packages"
+      ],
+      [
+        "Reviewed init configuration",
+        "Non-overlapping ranges and version"
+      ],
+      [
+        "Control-plane bootstrap",
+        "Certificates, API and datastore"
+      ],
+      [
+        "Node join",
+        "Token/trust and kubelet registration"
+      ],
+      [
+        "CNI installation",
+        "Compatible Pod networking"
+      ],
+      [
+        "End-to-end verification",
+        "Ready nodes, DNS and application"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "record environment"
+      ],
+      [
+        1,
+        2,
+        "kubeadm init"
+      ],
+      [
+        2,
+        3,
+        "join controlled workers"
+      ],
+      [
+        2,
+        4,
+        "install chosen network"
+      ],
+      [
+        3,
+        5,
+        "verify after networking ready"
+      ]
+    ],
+    "caption": "kubeadm does not provision the VMs or select every infrastructure component. NotReady after join can reflect missing networking rather than a bad token."
+  },
+  "availability": {
+    "title": "Independent redundancy and quorum checks",
+    "nodes": [
+      [
+        "Stable API endpoint",
+        "Reach healthy API servers"
+      ],
+      [
+        "Three control-plane nodes",
+        "Separate intended failure domains"
+      ],
+      [
+        "Three etcd members",
+        "Need two healthy communicating votes"
+      ],
+      [
+        "Application replicas",
+        "Spread across eligible workers"
+      ],
+      [
+        "Data and ingress dependencies",
+        "Separate availability requirements"
+      ],
+      [
+        "User-level acceptance",
+        "Requests succeed under chosen fault"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "balance API access"
+      ],
+      [
+        1,
+        2,
+        "persist through datastore quorum"
+      ],
+      [
+        3,
+        4,
+        "depend on serving/data path"
+      ],
+      [
+        3,
+        5,
+        "test intended worker failure"
+      ],
+      [
+        4,
+        5,
+        "test dependency assumptions"
+      ]
+    ],
+    "caption": "Stacked etcd may colocate datastore and API roles. Three software replicas are not necessarily three independent physical failure domains."
+  },
+  "upgrades": {
+    "title": "An upgrade needs preconditions and acceptance gates",
+    "nodes": [
+      [
+        "Version inventory",
+        "Source/target and supported skew"
+      ],
+      [
+        "Compatibility review",
+        "APIs, webhooks, runtime and plugins"
+      ],
+      [
+        "Recovery checkpoint",
+        "Backups and tested restoration"
+      ],
+      [
+        "Control-plane transition",
+        "Follow version-matched procedure"
+      ],
+      [
+        "Worker maintenance",
+        "Drain, upgrade and return one node"
+      ],
+      [
+        "Acceptance checks",
+        "DNS, storage, rollout and requests"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "check dependencies"
+      ],
+      [
+        1,
+        2,
+        "prepare recovery"
+      ],
+      [
+        2,
+        3,
+        "authorise controlled change"
+      ],
+      [
+        3,
+        4,
+        "continue documented sequence"
+      ],
+      [
+        4,
+        5,
+        "verify before next node"
+      ]
+    ],
+    "caption": "Exact package operations and ordering must follow the official guide for the actual transition. Do not copy a current-version installer into an unrelated older cluster."
+  },
+  "extension-interfaces": {
+    "title": "Extension contracts solve different integration problems",
+    "nodes": [
+      [
+        "kubelet",
+        "Coordinates node execution"
+      ],
+      [
+        "CRI runtime",
+        "Start sandboxes and containers"
+      ],
+      [
+        "CNI integration",
+        "Configure Pod network interfaces"
+      ],
+      [
+        "CSI integration",
+        "Provision, attach and mount volumes"
+      ],
+      [
+        "Custom resource API",
+        "Schema-defined application intent"
+      ],
+      [
+        "Operator controller",
+        "Reconcile custom resources"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "runtime interface"
+      ],
+      [
+        1,
+        2,
+        "network setup through integration"
+      ],
+      [
+        0,
+        3,
+        "node-side storage integration"
+      ],
+      [
+        4,
+        5,
+        "watch custom intent"
+      ]
+    ],
+    "caption": "This is a responsibility map, not a universal direct-call trace. CSI also includes controller-side services. An Operator is not a replacement for CRI, CNI or CSI."
+  },
+  "admin-rbac": {
+    "title": "Access and delegation require separate reviews",
+    "nodes": [
+      [
+        "Caller identity",
+        "Human or workload principal"
+      ],
+      [
+        "Role rules",
+        "Verbs, resources and scope"
+      ],
+      [
+        "Binding",
+        "Associate identity with rules"
+      ],
+      [
+        "API authorization",
+        "Evaluate requested operation"
+      ],
+      [
+        "Delegation powers",
+        "Bind/escalate/impersonate concerns"
+      ],
+      [
+        "Audit and can-i evidence",
+        "Verify intended allow and deny"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "subject of binding"
+      ],
+      [
+        1,
+        2,
+        "referenced permission set"
+      ],
+      [
+        2,
+        3,
+        "contributes authorization"
+      ],
+      [
+        4,
+        3,
+        "review privilege-expansion paths"
+      ],
+      [
+        3,
+        5,
+        "test effective outcome"
+      ]
+    ],
+    "caption": "RBAC grants are additive; a narrow Role does not cancel a broader grant. Workload creation can also expose powerful identities or data, so evaluate indirect access."
+  },
+  "scheduling": {
+    "title": "Feasibility precedes placement preference",
+    "nodes": [
+      [
+        "Pending Pod",
+        "Requests and placement rules"
+      ],
+      [
+        "Node filtering",
+        "Resources, hard affinity and taints"
+      ],
+      [
+        "Eligible nodes",
+        "Meet hard constraints"
+      ],
+      [
+        "Scoring preferences",
+        "Prefer a suitable placement"
+      ],
+      [
+        "Binding",
+        "Record selected node via API"
+      ],
+      [
+        "Kubelet admission/execution",
+        "Run assigned workload if possible"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "evaluate requirements"
+      ],
+      [
+        1,
+        2,
+        "keep feasible candidates"
+      ],
+      [
+        2,
+        3,
+        "rank choices"
+      ],
+      [
+        3,
+        4,
+        "choose node"
+      ],
+      [
+        4,
+        5,
+        "execute assignment"
+      ]
+    ],
+    "caption": "A toleration permits consideration of a tainted node; it does not force placement there. Storage topology and admission can add further constraints."
+  },
+  "autoscaling": {
+    "title": "Two scaling loops can have different blockers",
+    "nodes": [
+      [
+        "Resource metrics",
+        "Observed CPU or other supported signal"
+      ],
+      [
+        "HPA controller",
+        "Compare metric with target"
+      ],
+      [
+        "Desired replicas",
+        "Adjust workload scale"
+      ],
+      [
+        "Scheduler",
+        "Place resulting Pods if feasible"
+      ],
+      [
+        "Node capacity loop",
+        "Add capacity where supported"
+      ],
+      [
+        "Blocked demand",
+        "Quota, requests, topology or addresses"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "metric input"
+      ],
+      [
+        1,
+        2,
+        "compute replica demand"
+      ],
+      [
+        2,
+        3,
+        "create and schedule Pods"
+      ],
+      [
+        3,
+        4,
+        "unschedulable demand may trigger"
+      ],
+      [
+        5,
+        4,
+        "can prevent capacity addition"
+      ]
+    ],
+    "caption": "CPU utilisation targets depend on requests. HPA does not create nodes by itself, and adding nodes cannot fix incompatible placement or a serial database bottleneck."
+  },
+  "disruptions": {
+    "title": "Draining uses voluntary eviction controls",
+    "nodes": [
+      [
+        "Maintenance request",
+        "Drain one verified lab node"
+      ],
+      [
+        "Eviction API",
+        "Request removal of eligible Pods"
+      ],
+      [
+        "Disruption budget",
+        "Evaluate allowed voluntary disruption"
+      ],
+      [
+        "Pod termination",
+        "Grace period and application shutdown"
+      ],
+      [
+        "Replacement placement",
+        "Controller needs available capacity"
+      ],
+      [
+        "Service outcome",
+        "Retest requests during change"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "request eviction"
+      ],
+      [
+        1,
+        2,
+        "check budget"
+      ],
+      [
+        2,
+        3,
+        "if disruption allowed"
+      ],
+      [
+        3,
+        4,
+        "maintain controller desired state"
+      ],
+      [
+        4,
+        5,
+        "check restored capacity"
+      ]
+    ],
+    "caption": "Replacement and shutdown can overlap and are asynchronous. A disruption budget does not stop involuntary node failure or guarantee zero user errors."
+  },
+  "cni-dataplane": {
+    "title": "Service traffic uses programmed networking state",
+    "nodes": [
+      [
+        "Pod network interface",
+        "Address and namespace connectivity"
+      ],
+      [
+        "CNI implementation",
+        "Provide configured network behaviour"
+      ],
+      [
+        "Service / EndpointSlice state",
+        "Desired eligible backends"
+      ],
+      [
+        "Forwarding implementation",
+        "kube-proxy or compatible alternative"
+      ],
+      [
+        "Client packet",
+        "Service destination and port"
+      ],
+      [
+        "Backend listener",
+        "Selected Pod target port"
+      ]
+    ],
+    "edges": [
+      [
+        1,
+        0,
+        "configure Pod connectivity"
+      ],
+      [
+        2,
+        3,
+        "program endpoint-aware forwarding"
+      ],
+      [
+        4,
+        3,
+        "traverse Service data plane"
+      ],
+      [
+        3,
+        5,
+        "select backend path"
+      ]
+    ],
+    "caption": "The API is a source of configuration, not a hop for ordinary application packets. eBPF-based implementations can replace selected forwarding mechanisms; behaviour still requires validation."
+  },
+  "coredns": {
+    "title": "DNS resolution is one dependency in a request path",
+    "nodes": [
+      [
+        "Pod resolver configuration",
+        "Nameserver and search domains"
+      ],
+      [
+        "DNS Service address",
+        "Reach cluster DNS through network"
+      ],
+      [
+        "CoreDNS instance",
+        "Handle supported queries"
+      ],
+      [
+        "Kubernetes records",
+        "Service-name information"
+      ],
+      [
+        "Upstream resolver",
+        "External names where configured"
+      ],
+      [
+        "Client connection",
+        "Use returned address separately"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "send query"
+      ],
+      [
+        1,
+        2,
+        "forward DNS traffic"
+      ],
+      [
+        2,
+        3,
+        "answer cluster name"
+      ],
+      [
+        2,
+        4,
+        "forward external lookup"
+      ],
+      [
+        3,
+        5,
+        "client uses answer"
+      ]
+    ],
+    "caption": "DNS answers do not proxy the HTTP request. NXDOMAIN, timeout and an application error are distinct observations; confirm the namespace and query form."
+  },
+  "csi-storage": {
+    "title": "Locate the failed storage lifecycle boundary",
+    "nodes": [
+      [
+        "PVC",
+        "Capacity, class and access request"
+      ],
+      [
+        "StorageClass / topology",
+        "Binding mode and driver parameters"
+      ],
+      [
+        "Provisioned PV",
+        "Backing volume reference"
+      ],
+      [
+        "Attachment",
+        "Make volume available to node"
+      ],
+      [
+        "Mount and filesystem",
+        "Expose usable data path"
+      ],
+      [
+        "Application restore test",
+        "Verify known data independently"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "resolve requested class"
+      ],
+      [
+        1,
+        2,
+        "provision or bind volume"
+      ],
+      [
+        2,
+        3,
+        "attach if driver requires"
+      ],
+      [
+        3,
+        4,
+        "mount to consumer"
+      ],
+      [
+        4,
+        5,
+        "check application data"
+      ]
+    ],
+    "caption": "Not every driver requires an attachment stage. Capacity fields, mounting and application-consistent restoration are different verification boundaries."
+  },
+  "node-triage": {
+    "title": "A node symptom needs host-level evidence",
+    "nodes": [
+      [
+        "Node condition",
+        "Ready, pressure and heartbeat state"
+      ],
+      [
+        "Kubelet service",
+        "API communication and Pod management"
+      ],
+      [
+        "Runtime health",
+        "CRI socket and container execution"
+      ],
+      [
+        "Host resources",
+        "Disk, memory, CPU, PIDs and time"
+      ],
+      [
+        "Single causal hypothesis",
+        "Correlate timeline before changing"
+      ],
+      [
+        "Recovery verification",
+        "Node and original application request"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "inspect node agent"
+      ],
+      [
+        0,
+        2,
+        "inspect runtime"
+      ],
+      [
+        0,
+        3,
+        "inspect host constraints"
+      ],
+      [
+        1,
+        4,
+        "compare evidence"
+      ],
+      [
+        4,
+        5,
+        "repair then retest"
+      ]
+    ],
+    "caption": "Read-only evidence comes before a controlled repair. A reboot can hide the cause; retain logs and explain recurring resource growth."
+  },
+  "control-plane-triage": {
+    "title": "Diagnose access before editing control-plane state",
+    "nodes": [
+      [
+        "Client error",
+        "Timeout, TLS, unauthorized or forbidden"
+      ],
+      [
+        "Endpoint path",
+        "Name resolution and TCP reachability"
+      ],
+      [
+        "Trust and identity",
+        "Certificate, time and credentials"
+      ],
+      [
+        "Host static Pods",
+        "kubelet, manifests and runtime logs"
+      ],
+      [
+        "API / datastore health",
+        "Readiness and etcd dependencies"
+      ],
+      [
+        "Verified repair",
+        "Access plus workload reconciliation"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "test connectivity"
+      ],
+      [
+        0,
+        2,
+        "test security boundary"
+      ],
+      [
+        1,
+        3,
+        "if endpoint host unhealthy"
+      ],
+      [
+        3,
+        4,
+        "inspect component dependencies"
+      ],
+      [
+        4,
+        5,
+        "repair established cause"
+      ]
+    ],
+    "caption": "These are diagnostic branches, not a requirement to edit every layer. Keep static-manifest backups outside the watched directory."
+  },
+  "network-triage": {
+    "title": "Trace a failed request from name to response",
+    "nodes": [
+      [
+        "Exact client request",
+        "Source, hostname, port and path"
+      ],
+      [
+        "DNS answer",
+        "Correct name and namespace"
+      ],
+      [
+        "Service selection",
+        "Labels and ready EndpointSlices"
+      ],
+      [
+        "Backend reachability",
+        "Target port, listener and policy"
+      ],
+      [
+        "External boundary",
+        "Gateway, TLS and load-balancer health"
+      ],
+      [
+        "Repeated request",
+        "Before/after outcome with evidence"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "check resolution"
+      ],
+      [
+        1,
+        2,
+        "check intended destination"
+      ],
+      [
+        2,
+        3,
+        "test backend path"
+      ],
+      [
+        0,
+        4,
+        "if external entry used"
+      ],
+      [
+        3,
+        5,
+        "verify after correction"
+      ]
+    ],
+    "caption": "Do not treat all timeouts as one cause. Compare direct backend and Service paths where permitted, then inspect external layers if they exist."
+  },
+  "observability": {
+    "title": "Signals answer different diagnostic questions",
+    "nodes": [
+      [
+        "User request",
+        "Outcome and latency measurement"
+      ],
+      [
+        "Metrics",
+        "Trends, saturation and error rates"
+      ],
+      [
+        "Application logs",
+        "Timestamped process observations"
+      ],
+      [
+        "Distributed trace",
+        "Segments across request boundaries"
+      ],
+      [
+        "Kubernetes / audit evidence",
+        "Object Events and API actions"
+      ],
+      [
+        "Incident hypothesis",
+        "Correlate, test and verify"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "aggregate measurements"
+      ],
+      [
+        0,
+        2,
+        "record application events"
+      ],
+      [
+        0,
+        3,
+        "trace participating components"
+      ],
+      [
+        1,
+        5,
+        "support diagnosis"
+      ],
+      [
+        4,
+        5,
+        "explain platform changes"
+      ]
+    ],
+    "caption": "Signals are complementary, not interchangeable. Missing telemetry is not zero failure; minimise sensitive data and excessive cardinality."
+  },
+  "ckad-capstone": {
+    "title": "Developer evidence loop",
+    "nodes": [
+      [
+        "Defined task",
+        "Acceptance condition and scope"
+      ],
+      [
+        "Prepared environment",
+        "Versions, context and recovery path"
+      ],
+      [
+        "Independent attempt",
+        "No copied solution during the task"
+      ],
+      [
+        "Observed evidence",
+        "Workload and request behaviour"
+      ],
+      [
+        "Review and correction",
+        "Explain gaps, not only final status"
+      ],
+      [
+        "Changed-condition repeat",
+        "Demonstrate transferable reasoning"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "prepare safely"
+      ],
+      [
+        1,
+        2,
+        "attempt"
+      ],
+      [
+        2,
+        3,
+        "record actual observations"
+      ],
+      [
+        3,
+        4,
+        "assess against criteria"
+      ],
+      [
+        4,
+        5,
+        "repeat with variation"
+      ]
+    ],
+    "caption": "Offline reasoning and live execution provide different evidence. Record unperformed tasks honestly; a timer or completion mark is not certification."
+  },
+  "cka-capstone": {
+    "title": "Administrator evidence loop",
+    "nodes": [
+      [
+        "Defined task",
+        "Acceptance condition and scope"
+      ],
+      [
+        "Prepared environment",
+        "Versions, context and recovery path"
+      ],
+      [
+        "Independent attempt",
+        "No copied solution during the task"
+      ],
+      [
+        "Observed evidence",
+        "Node, platform and recovery behaviour"
+      ],
+      [
+        "Review and correction",
+        "Explain gaps, not only final status"
+      ],
+      [
+        "Changed-condition repeat",
+        "Demonstrate transferable reasoning"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "prepare safely"
+      ],
+      [
+        1,
+        2,
+        "attempt"
+      ],
+      [
+        2,
+        3,
+        "record actual observations"
+      ],
+      [
+        3,
+        4,
+        "assess against criteria"
+      ],
+      [
+        4,
+        5,
+        "repeat with variation"
+      ]
+    ],
+    "caption": "Offline reasoning and live execution provide different evidence. Record unperformed tasks honestly; a timer or completion mark is not certification."
+  },
+  "gcp-capstone": {
+    "title": "Cloud engineer / architect evidence loop",
+    "nodes": [
+      [
+        "Defined task",
+        "Acceptance condition and scope"
+      ],
+      [
+        "Prepared environment",
+        "Versions, context and recovery path"
+      ],
+      [
+        "Independent attempt",
+        "No copied solution during the task"
+      ],
+      [
+        "Observed evidence",
+        "Cloud operation and design judgement"
+      ],
+      [
+        "Review and correction",
+        "Explain gaps, not only final status"
+      ],
+      [
+        "Changed-condition repeat",
+        "Demonstrate transferable reasoning"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "prepare safely"
+      ],
+      [
+        1,
+        2,
+        "attempt"
+      ],
+      [
+        2,
+        3,
+        "record actual observations"
+      ],
+      [
+        3,
+        4,
+        "assess against criteria"
+      ],
+      [
+        4,
+        5,
+        "repeat with variation"
+      ]
+    ],
+    "caption": "Offline reasoning and live execution provide different evidence. Record unperformed tasks honestly; a timer or completion mark is not certification."
+  },
+  "gcp-start": {
+    "title": "Scope and billing checks precede provisioning",
+    "nodes": [
+      [
+        "Authenticated account",
+        "Principal used by the CLI"
+      ],
+      [
+        "Named project",
+        "Explicit target resource scope"
+      ],
+      [
+        "Billing association",
+        "Who pays for this project?"
+      ],
+      [
+        "APIs and quotas",
+        "Availability and applicable limits"
+      ],
+      [
+        "Budget notifications",
+        "Inform recipients; not a spending cap"
+      ],
+      [
+        "Resource inventory",
+        "Created items and cleanup evidence"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "act in authorised scope"
+      ],
+      [
+        1,
+        2,
+        "check linked billing"
+      ],
+      [
+        1,
+        3,
+        "check service readiness"
+      ],
+      [
+        2,
+        4,
+        "configure cost visibility"
+      ],
+      [
+        1,
+        5,
+        "track created resources"
+      ]
+    ],
+    "caption": "Default CLI configuration can be overridden by command flags. Budget alerts, quotas and deliberate resource cleanup solve different problems."
+  },
+  "gcp-iam": {
+    "title": "Explain an access decision without using broad roles",
+    "nodes": [
+      [
+        "Principal",
+        "Human, group or workload"
+      ],
+      [
+        "Role permissions",
+        "Actions included in chosen role"
+      ],
+      [
+        "Resource binding",
+        "Role grant at intended scope"
+      ],
+      [
+        "Inherited controls",
+        "Ancestor policy and constraints"
+      ],
+      [
+        "Effective decision",
+        "Principal, action, resource and context"
+      ],
+      [
+        "Observed allow / deny",
+        "Test intended access boundaries"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "bind intended subject"
+      ],
+      [
+        1,
+        2,
+        "grant permission set"
+      ],
+      [
+        2,
+        4,
+        "evaluate local grant"
+      ],
+      [
+        3,
+        4,
+        "evaluate effective controls"
+      ],
+      [
+        4,
+        5,
+        "test actual operation"
+      ]
+    ],
+    "caption": "Service-account impersonation authority must also be reviewed. A project-local policy is not necessarily the complete effective access picture."
+  },
+  "gcp-compute": {
+    "title": "Select an operating model from requirements",
+    "nodes": [
+      [
+        "Workload constraints",
+        "State, runtime, scale and team skills"
+      ],
+      [
+        "VM / managed instance group",
+        "OS control and fleet operation"
+      ],
+      [
+        "Cloud Run",
+        "Managed supported container workload"
+      ],
+      [
+        "GKE",
+        "Kubernetes APIs and ecosystem"
+      ],
+      [
+        "Responsibility matrix",
+        "Who patches, scales and responds?"
+      ],
+      [
+        "Decision evidence",
+        "Trade-offs, cost and revisit trigger"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "evaluate OS-control fit"
+      ],
+      [
+        0,
+        2,
+        "evaluate managed-app fit"
+      ],
+      [
+        0,
+        3,
+        "evaluate orchestration fit"
+      ],
+      [
+        1,
+        4,
+        "VM duties"
+      ],
+      [
+        4,
+        5,
+        "compare complete operating cost"
+      ]
+    ],
+    "caption": "The three platforms are alternatives or complementary roles. The GKE course choice is a learning objective, not proof that every information page needs Kubernetes."
+  },
+  "gcp-storage": {
+    "title": "Retention and recovery affect deletion outcomes",
+    "nodes": [
+      [
+        "Private bucket",
+        "Location, class and IAM policy"
+      ],
+      [
+        "Dummy object",
+        "Current content generation"
+      ],
+      [
+        "Protection settings",
+        "Versioning, soft delete or retention"
+      ],
+      [
+        "Lifecycle rules",
+        "Automated matching actions"
+      ],
+      [
+        "Deletion request",
+        "May be constrained or recoverable"
+      ],
+      [
+        "Recovery / cost evidence",
+        "Which copies and charges remain?"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "store object"
+      ],
+      [
+        2,
+        1,
+        "govern protection"
+      ],
+      [
+        3,
+        4,
+        "trigger configured action"
+      ],
+      [
+        1,
+        4,
+        "user requests deletion"
+      ],
+      [
+        4,
+        5,
+        "inspect actual remaining state"
+      ]
+    ],
+    "caption": "Features and costs depend on configuration and current service rules. A successful delete of a current object is not always removal of every retained copy."
+  },
+  "gke-modes": {
+    "title": "Platform mode changes the ownership boundary",
+    "nodes": [
+      [
+        "Application team",
+        "Images, configuration and outcomes"
+      ],
+      [
+        "Autopilot infrastructure",
+        "GKE manages more node decisions"
+      ],
+      [
+        "Standard node pools",
+        "Team selects additional node settings"
+      ],
+      [
+        "Managed control plane",
+        "GKE operates API infrastructure"
+      ],
+      [
+        "Workload constraints",
+        "Admission and supported capabilities"
+      ],
+      [
+        "Operational evidence",
+        "Requests, identity, data and recovery"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "deploy supported workload"
+      ],
+      [
+        0,
+        2,
+        "configure workload and node choices"
+      ],
+      [
+        1,
+        3,
+        "use managed API"
+      ],
+      [
+        2,
+        3,
+        "use managed API"
+      ],
+      [
+        4,
+        5,
+        "verify admitted behaviour"
+      ]
+    ],
+    "caption": "Modes have shared and distinct responsibilities. Inspect current support and admitted settings instead of assuming local kind behaviour is identical."
+  },
+  "gke-first": {
+    "title": "Cloud provisioning and Kubernetes access are separate gates",
+    "nodes": [
+      [
+        "Project prerequisites",
+        "Billing, API, quota and network"
+      ],
+      [
+        "Node service account",
+        "Least privilege for node duties"
+      ],
+      [
+        "GKE cluster operation",
+        "Create named regional learning cluster"
+      ],
+      [
+        "Client kubeconfig",
+        "Endpoint and authentication plugin"
+      ],
+      [
+        "Kubernetes authorization",
+        "Allowed operations for caller"
+      ],
+      [
+        "Bank acceptance test",
+        "Ready Pods, endpoints and page marker"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "permit provisioning"
+      ],
+      [
+        1,
+        2,
+        "configure node identity"
+      ],
+      [
+        2,
+        3,
+        "get connection settings"
+      ],
+      [
+        3,
+        4,
+        "authenticate request"
+      ],
+      [
+        4,
+        5,
+        "deploy and verify if authorised"
+      ]
+    ],
+    "caption": "Node identity is not automatically the application identity. Learning commands do not provision anything until the learner explicitly runs them in their own project."
+  },
+  "gke-lifecycle": {
+    "title": "Maintenance depends on both policy and spare capacity",
+    "nodes": [
+      [
+        "Release channel",
+        "Version stream and support lifecycle"
+      ],
+      [
+        "Maintenance controls",
+        "Windows and supported exclusions"
+      ],
+      [
+        "Workload readiness",
+        "Healthy replicas and useful probes"
+      ],
+      [
+        "Disruption policy",
+        "Permitted voluntary evictions"
+      ],
+      [
+        "Available capacity",
+        "Placement, quota and autoscaling"
+      ],
+      [
+        "Post-change checks",
+        "Actual user and dependency behaviour"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "configure timing within limits"
+      ],
+      [
+        2,
+        3,
+        "determine disruption allowance"
+      ],
+      [
+        3,
+        4,
+        "need replacement capacity"
+      ],
+      [
+        1,
+        5,
+        "verify maintenance outcome"
+      ],
+      [
+        4,
+        5,
+        "verify restored workload"
+      ]
+    ],
+    "caption": "Maintenance controls do not promise indefinite upgrade avoidance. A strict disruption budget cannot manufacture healthy replicas or spare capacity."
+  },
+  "gcp-iac": {
+    "title": "State links configuration with real resources",
+    "nodes": [
+      [
+        "Versioned configuration",
+        "Reviewed desired infrastructure"
+      ],
+      [
+        "Protected state",
+        "Resource mapping and sensitive data"
+      ],
+      [
+        "Provider API observation",
+        "Read actual cloud state"
+      ],
+      [
+        "Plan",
+        "Proposed changes and replacements"
+      ],
+      [
+        "Approved apply",
+        "Authorised identity performs change"
+      ],
+      [
+        "Acceptance tests",
+        "Infrastructure and application evidence"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        3,
+        "desired intent"
+      ],
+      [
+        1,
+        3,
+        "known resource mapping"
+      ],
+      [
+        2,
+        3,
+        "refresh observation"
+      ],
+      [
+        3,
+        4,
+        "review before action"
+      ],
+      [
+        4,
+        5,
+        "verify actual outcome"
+      ]
+    ],
+    "caption": "A plan is not an executed result. Protect state and locking, and review drift, destructive replacements and costs before applying."
+  },
+  "gcp-observe": {
+    "title": "Define the denominator before trusting the SLO",
+    "nodes": [
+      [
+        "Valid request population",
+        "What counts in the window?"
+      ],
+      [
+        "Good request criterion",
+        "Success and latency condition"
+      ],
+      [
+        "SLI calculation",
+        "Good divided by valid total"
+      ],
+      [
+        "SLO target",
+        "Objective over defined window"
+      ],
+      [
+        "Error-budget decision",
+        "Allowed bad outcomes and burn"
+      ],
+      [
+        "Actionable alert",
+        "Owner, runbook and notification test"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        2,
+        "denominator"
+      ],
+      [
+        1,
+        2,
+        "numerator"
+      ],
+      [
+        2,
+        3,
+        "compare with target"
+      ],
+      [
+        3,
+        4,
+        "derive remaining allowance"
+      ],
+      [
+        4,
+        5,
+        "alert on meaningful risk"
+      ]
+    ],
+    "caption": "A request-based objective is not a fixed downtime allowance. Missing data, exclusions and telemetry health must be explicitly handled."
+  },
+  "gcp-security": {
+    "title": "Match controls to an actual threat boundary",
+    "nodes": [
+      [
+        "Asset and abuse case",
+        "What is valuable and how misused?"
+      ],
+      [
+        "Identity permissions",
+        "Least privilege and delegation"
+      ],
+      [
+        "Network/service perimeter",
+        "Supported connectivity constraints"
+      ],
+      [
+        "Secrets and key controls",
+        "Access, rotation and availability"
+      ],
+      [
+        "Detection evidence",
+        "Audit and actionable signals"
+      ],
+      [
+        "Response and recovery",
+        "Contain, restore and verify"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "prevent identity misuse"
+      ],
+      [
+        0,
+        2,
+        "reduce network/exfiltration paths"
+      ],
+      [
+        0,
+        3,
+        "protect sensitive material"
+      ],
+      [
+        1,
+        4,
+        "observe access decisions"
+      ],
+      [
+        4,
+        5,
+        "respond with evidence"
+      ]
+    ],
+    "caption": "Controls are complementary. Encryption does not prevent an authorised principal from requesting plaintext; compliance needs actual requirements and evidence."
+  },
+  "gcp-cost": {
+    "title": "Cost improvement must preserve required outcomes",
+    "nodes": [
+      [
+        "Demand model",
+        "Baseline, peak and workload shape"
+      ],
+      [
+        "Resource estimate",
+        "Compute, storage, traffic and telemetry"
+      ],
+      [
+        "Service constraints",
+        "Latency, availability and recovery"
+      ],
+      [
+        "Measured usage",
+        "Utilisation and useful outcomes"
+      ],
+      [
+        "Optimisation choice",
+        "Right-size, schedule or change design"
+      ],
+      [
+        "Recheck value",
+        "Unit cost and quality after change"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "estimate complete footprint"
+      ],
+      [
+        2,
+        1,
+        "constrain design"
+      ],
+      [
+        1,
+        3,
+        "compare with observations"
+      ],
+      [
+        3,
+        4,
+        "identify supported improvement"
+      ],
+      [
+        4,
+        5,
+        "verify saving and outcomes"
+      ]
+    ],
+    "caption": "Use current regional prices and dated assumptions. A cheaper unit is not necessarily a cheaper completed task, and resource deletion may leave retained costs."
+  },
+  "gcp-architecture": {
+    "title": "A defensible decision connects requirements to evidence",
+    "nodes": [
+      [
+        "Business outcome",
+        "Why the service exists"
+      ],
+      [
+        "Quality constraints",
+        "Measurable latency, recovery and access"
+      ],
+      [
+        "Candidate options",
+        "Several plausible operating models"
+      ],
+      [
+        "Decision record",
+        "Choice, consequences and assumptions"
+      ],
+      [
+        "Architecture views",
+        "Context, deployment and trust boundaries"
+      ],
+      [
+        "Experiments and review",
+        "Test claims and define revisit triggers"
+      ]
+    ],
+    "edges": [
+      [
+        0,
+        1,
+        "derive measurable needs"
+      ],
+      [
+        1,
+        2,
+        "evaluate fit"
+      ],
+      [
+        2,
+        3,
+        "record trade-off"
+      ],
+      [
+        3,
+        4,
+        "explain responsibilities"
+      ],
+      [
+        4,
+        5,
+        "validate uncertain assumptions"
+      ]
+    ],
+    "caption": "A component diagram alone does not explain why a choice is appropriate. Distinguish an implemented learning sample from a proposed future banking platform."
+  }
 }

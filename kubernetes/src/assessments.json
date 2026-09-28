@@ -40,7 +40,7 @@
         "solution": "Service selectors, ports and ready endpoints must align. Ingress needs a controller. NetworkPolicy needs enforcement. Missing infrastructure means the corresponding practical outcome is not earned, even when YAML validates."
       }
     ],
-    "rubric": "Award each task\u2019s points only when its stated observable outcomes are demonstrated. Partial credit: split the listed outcomes evenly and document which were observed. 80/100 is this guide\u2019s suggested readiness target, not an official passing score. Repeat all missed tasks independently. If policy or ingress infrastructure is absent, record the attempt as incomplete rather than silently reallocating those points."
+    "rubric": "Award each task’s points only when its stated observable outcomes are demonstrated. Partial credit: split the listed outcomes evenly and document which were observed. 80/100 is this guide’s suggested readiness target, not an official passing score. Repeat all missed tasks independently. If policy or ingress infrastructure is absent, record the attempt as incomplete rather than silently reallocating those points."
   },
   "cka": {
     "title": "CKA operations and incident rehearsal",
@@ -83,5 +83,89 @@
       }
     ],
     "rubric": "Original 120-minute training exercise, not official exam questions or scoring. Award points only for demonstrated outcomes; divide task points across its stated outcomes for partial credit. Suggested readiness target: 80/100 plus successful repetition of missed tasks. Infrastructure-dependent tasks remain incomplete when their required lab is unavailable."
+  },
+  "ace": {
+    "title": "ACE · Operate a cloud learning environment",
+    "minutes": 120,
+    "rubric": "Original practice, not the official exam format. Score evidence out of 100: award each task proportionally for correct configuration, observed verification and explanation. 80 is a suggested internal practice target, not a certification pass mark. Any wrong-project change, exposed credential or unverified cleanup requires correction before claiming readiness. Offline designs are valuable but do not earn live-execution evidence.",
+    "tasks": [
+      {
+        "title": "Establish scope and spending controls",
+        "points": 15,
+        "task": "Identify your sandbox principal, project, region, enabled APIs and billing linkage. Document a budget notification and a complete cleanup inventory before creating resources.",
+        "evidence": "Sanitised read-only output, budget recipient and resource inventory with owner/location.",
+        "solution": "Distinguish the CLI account, active configuration and explicit project flags. A budget notification is not a cap. Include retained disks, addresses, logs and backups in inventory."
+      },
+      {
+        "title": "Run and verify the information page",
+        "points": 25,
+        "task": "In an authorised sandbox, deploy bank.yaml to a learning GKE cluster with a dedicated kubeconfig. Keep access through port-forward. Explain any changed Pod requests.",
+        "evidence": "Context, cluster location, Ready state, usable endpoints and actual Harbour Bank response; clearly label any infrastructure prerequisites already supplied.",
+        "solution": "Cloud provisioning, client connectivity and Kubernetes authorization are separate. Confirm scope, wait for rollout, inspect endpoints and test the response. Do not count a dry-run as runtime success."
+      },
+      {
+        "title": "Bound report access",
+        "points": 20,
+        "task": "Use Workload Identity Federation for a dedicated KSA to read one dummy bucket. Prove that an ungranted write is denied.",
+        "evidence": "Identity mapping and policy scope, allowed dummy read, denied write, no credential payloads.",
+        "solution": "Use the exact project number, workload pool, namespace and KSA. Direct principal binding or documented impersonation must match the selected method. Do not solve access failure with broad Owner grants."
+      },
+      {
+        "title": "Diagnose one controlled service fault",
+        "points": 20,
+        "task": "Introduce a wrong selector on the disposable bank Service. Diagnose and restore it using the smallest justified change. Connect cloud and cluster observations where relevant.",
+        "evidence": "Before/after selector, EndpointSlice state, hypothesis and the same request repeated after repair.",
+        "solution": "Ready Pods alone cannot establish Service health. Compare selection and labels before altering the Deployment. Restore the known manifest and verify the original request."
+      },
+      {
+        "title": "Handover and cleanup",
+        "points": 20,
+        "task": "Write an operational note and remove only created lab resources after collecting evidence. Explain the remaining billable dependencies or retention obligations.",
+        "evidence": "Inventory reconciled against actual resources, cleanup outputs and an honest list of untested operations.",
+        "solution": "Cluster deletion alone may not remove every disk, backup, address or stored image. Review each created resource, its retention and owner. Do not delete a shared project as a shortcut."
+      }
+    ]
+  },
+  "pca": {
+    "title": "PCA · Defend the Harbour Bank architecture",
+    "minutes": 120,
+    "rubric": "Original scenario workshop and reasoning questions, not official exam questions or a replica of Google’s exam format. Score out of 100 for requirements, coherent decisions, failure analysis, evidence and clear communication. A suggested internal review target is 80, with no unresolved critical access or recovery contradiction. Illustrative business targets below are fictional teaching constraints, not industry or regulatory requirements.",
+    "tasks": [
+      {
+        "title": "Requirements and platform choice",
+        "points": 20,
+        "task": "A fictional team of six supports the information page and plans a report service. Traffic peaks at ten times baseline; the team has limited Kubernetes operations experience. Compare Cloud Run, GKE and a VM fleet, then choose with stated assumptions.",
+        "evidence": "A decision record, rejected alternative, owner matrix and a trigger for revisiting the choice.",
+        "solution": "A simpler managed platform may fit the current application. GKE needs a requirement that justifies its operating model. Separate today’s read-only page from a proposed transactional platform; do not claim an implementation you have not built."
+      },
+      {
+        "title": "Identity and data boundaries",
+        "points": 20,
+        "task": "Reports must remain private; release automation must not read their contents. Draw workload, deployment and human access paths. Design a future transfer service’s retry/idempotency boundary without implementing real payments.",
+        "evidence": "Trust-boundary diagram, scoped roles, denial tests and a transaction/idempotency explanation.",
+        "solution": "Separate deployer and runtime identities; protect delegation. Use durable storage semantics for business effects. A Kubernetes restart or queue delivery feature does not make two financial writes atomic."
+      },
+      {
+        "title": "Recovery and migration",
+        "points": 25,
+        "task": "For fictional planning, assume a 60-minute RTO and 15-minute RPO for the report service. Design recovery after region loss and migration from an existing environment. Challenge whether the targets are achieved or merely proposed.",
+        "evidence": "Dependency inventory, restore order, data checkpoint, quota/key assumptions, cutover and post-write rollback plan.",
+        "solution": "Include configuration, images, data, identity and network. Backup for GKE is not a complete project backup. Measure recovery in rehearsal; account for replication lag and write reconciliation after cutover."
+      },
+      {
+        "title": "Operations and cost",
+        "points": 20,
+        "task": "Define a request-based SLO, an actionable alert, an upgrade process and a cost estimate with assumptions. Explain what changes if traffic grows tenfold for a week.",
+        "evidence": "Numerator/denominator/window, runbook owner, maintenance checks, capacity constraints and a dated cost model.",
+        "solution": "Avoid equating request success with fixed downtime minutes. Include telemetry, storage, transfer and load balancing in costs. Quota, address space and downstream capacity can block autoscaling."
+      },
+      {
+        "title": "AI help assistant design review",
+        "points": 15,
+        "task": "Add a public-help assistant without account access. Explain retrieval, evaluation, prompt-injection handling and fallback. Include one reason to reject a more complex model platform.",
+        "evidence": "Data-flow diagram, authorised corpus, hostile/unanswerable test cases, quality/latency criteria and escalation behaviour.",
+        "solution": "Retrieved passages are untrusted data, not authority. Restrict sources before generation, test grounding and leakage, and keep financial actions outside the model’s permissions. Managed APIs may reduce operational burden when their data and capability constraints fit."
+      }
+    ]
   }
 }

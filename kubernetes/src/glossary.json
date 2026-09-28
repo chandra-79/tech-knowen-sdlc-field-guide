@@ -1,0 +1,222 @@
+[
+  {
+    "term": "API server",
+    "meaning": "The Kubernetes entry point that authenticates, authorizes and admits API requests.",
+    "lesson": "api-control-plane"
+  },
+  {
+    "term": "Admission",
+    "meaning": "Checks or changes an API write after authentication and authorization.",
+    "lesson": "identity-rbac"
+  },
+  {
+    "term": "Affinity",
+    "meaning": "A placement rule expressing required or preferred relationships.",
+    "lesson": "scheduling"
+  },
+  {
+    "term": "Artifact",
+    "meaning": "A produced item such as an image or release manifest, with traceable identity.",
+    "lesson": "gcp-delivery"
+  },
+  {
+    "term": "Authentication",
+    "meaning": "Establishing who the caller is.",
+    "lesson": "identity-rbac"
+  },
+  {
+    "term": "Authorization",
+    "meaning": "Deciding whether that caller may perform an action.",
+    "lesson": "gcp-iam"
+  },
+  {
+    "term": "Canary",
+    "meaning": "A release exposed to a controlled subset before wider promotion.",
+    "lesson": "release-strategies"
+  },
+  {
+    "term": "CNI",
+    "meaning": "A network integration contract used to configure container connectivity.",
+    "lesson": "extension-interfaces"
+  },
+  {
+    "term": "ConfigMap",
+    "meaning": "A Kubernetes object for non-secret configuration.",
+    "lesson": "configuration"
+  },
+  {
+    "term": "Container",
+    "meaning": "A running isolated process environment based on an image.",
+    "lesson": "images"
+  },
+  {
+    "term": "Control plane",
+    "meaning": "Components that coordinate desired state and cluster operations.",
+    "lesson": "cluster-internals"
+  },
+  {
+    "term": "CRI",
+    "meaning": "The interface kubelet uses to communicate with a compatible container runtime.",
+    "lesson": "extension-interfaces"
+  },
+  {
+    "term": "CRD",
+    "meaning": "A definition that adds a custom resource kind and schema to the API.",
+    "lesson": "extensions"
+  },
+  {
+    "term": "CSI",
+    "meaning": "An interface for integrating storage with container orchestrators.",
+    "lesson": "csi-storage"
+  },
+  {
+    "term": "Data plane",
+    "meaning": "The execution and traffic-serving path, distinct from control configuration.",
+    "lesson": "cni-dataplane"
+  },
+  {
+    "term": "Deployment",
+    "meaning": "A controller for managing interchangeable application replicas and rollouts.",
+    "lesson": "workload-choice"
+  },
+  {
+    "term": "Digest",
+    "meaning": "A content identifier for an artifact; it identifies bytes rather than proving safety.",
+    "lesson": "images"
+  },
+  {
+    "term": "DNS",
+    "meaning": "Name resolution, which is separate from the later connection to the returned address.",
+    "lesson": "coredns"
+  },
+  {
+    "term": "etcd",
+    "meaning": "The datastore used for Kubernetes API state in this architecture.",
+    "lesson": "etcd-recovery"
+  },
+  {
+    "term": "Eviction",
+    "meaning": "A request to remove a Pod; voluntary eviction can be checked against a disruption budget.",
+    "lesson": "disruptions"
+  },
+  {
+    "term": "Gateway",
+    "meaning": "A Gateway API resource describing listeners and entry-point intent.",
+    "lesson": "gateway-api"
+  },
+  {
+    "term": "Idempotency",
+    "meaning": "A design property that makes repeating an operation avoid duplicate logical effects.",
+    "lesson": "gcp-events"
+  },
+  {
+    "term": "Image",
+    "meaning": "Packaged filesystem layers and metadata used to start containers.",
+    "lesson": "images"
+  },
+  {
+    "term": "Ingress",
+    "meaning": "A Kubernetes API resource for supported HTTP routing rules; it needs a controller.",
+    "lesson": "ingress"
+  },
+  {
+    "term": "KSA",
+    "meaning": "A Kubernetes ServiceAccount, distinct from a Google IAM service account.",
+    "lesson": "gke-identity"
+  },
+  {
+    "term": "kubeconfig",
+    "meaning": "Client connection and identity settings with selectable contexts.",
+    "lesson": "objects-contexts"
+  },
+  {
+    "term": "kubelet",
+    "meaning": "The node agent that manages assigned Pods through the runtime.",
+    "lesson": "node-triage"
+  },
+  {
+    "term": "Namespace",
+    "meaning": "An organisational scope for many Kubernetes objects, not automatic network isolation.",
+    "lesson": "objects-contexts"
+  },
+  {
+    "term": "Node",
+    "meaning": "A machine or learning-node container that runs Kubernetes node responsibilities.",
+    "lesson": "setup"
+  },
+  {
+    "term": "Operator",
+    "meaning": "A controller that reconciles custom domain-specific intent.",
+    "lesson": "extensions"
+  },
+  {
+    "term": "Pod",
+    "meaning": "The Kubernetes execution unit for one or more tightly related containers.",
+    "lesson": "pod-design"
+  },
+  {
+    "term": "Probe",
+    "meaning": "A configured check used for startup, readiness or liveness decisions.",
+    "lesson": "probes"
+  },
+  {
+    "term": "PVC",
+    "meaning": "A request for persistent storage; its binding and mount must be verified.",
+    "lesson": "storage"
+  },
+  {
+    "term": "Quorum",
+    "meaning": "The majority agreement needed for a consistent etcd cluster to make progress.",
+    "lesson": "availability"
+  },
+  {
+    "term": "Reconciliation",
+    "meaning": "Repeated comparison of desired state with observed state, followed by corrective actions.",
+    "lesson": "orientation"
+  },
+  {
+    "term": "Request / limit",
+    "meaning": "A resource request informs scheduling; a limit configures relevant runtime constraints.",
+    "lesson": "resources"
+  },
+  {
+    "term": "RPO",
+    "meaning": "A target for acceptable data loss relative to an incident.",
+    "lesson": "gcp-recovery"
+  },
+  {
+    "term": "RTO",
+    "meaning": "A target time for restoring a defined service; actual results need measurement.",
+    "lesson": "gcp-recovery"
+  },
+  {
+    "term": "Service",
+    "meaning": "A stable service abstraction selecting eligible workload endpoints.",
+    "lesson": "services-dns"
+  },
+  {
+    "term": "SLI / SLO",
+    "meaning": "An outcome indicator and its target over a defined window.",
+    "lesson": "gcp-observe"
+  },
+  {
+    "term": "StatefulSet",
+    "meaning": "A controller with stable identity and storage-related workload semantics.",
+    "lesson": "workload-choice"
+  },
+  {
+    "term": "Taint / toleration",
+    "meaning": "A node repelling condition and a Pod permission to tolerate it; tolerance does not force placement.",
+    "lesson": "scheduling"
+  },
+  {
+    "term": "VPC",
+    "meaning": "A cloud network boundary containing regional subnets and configured connectivity.",
+    "lesson": "gcp-network"
+  },
+  {
+    "term": "Workload identity",
+    "meaning": "An identity used by running software rather than a shared human login.",
+    "lesson": "gke-identity"
+  }
+]

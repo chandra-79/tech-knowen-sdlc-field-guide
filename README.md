@@ -10,6 +10,12 @@
 
 Written for learners from non-technical and technical backgrounds. No programming experience is needed to follow the main learning path.
 
+## Kubernetes & Cloud learning programme
+
+[Open the separate programme](https://chandra-79.github.io/tech-knowen-sdlc-field-guide/kubernetes/): 71 original lessons progressing from foundations through CKAD, CKA and Google Cloud ACE to PCA/GKE practice. Every lesson has a simple diagram, a detailed responsibility map, a banking example, a practical exercise and an explained self-check. Includes 23 displayed lab fixtures, four independent assessments, a 44-term glossary, local evidence notes and certification-domain mapping.
+
+Reading is self-contained and offline-capable. Local container labs, Linux VM administration and cloud exercises have distinct prerequisites; the source page identifies what was actually executed.
+
 ## Choose your learning depth
 
 | Level | Purpose | Examples and diagrams |
